@@ -1,0 +1,5 @@
+VAR
+	a b c d gowno[100] x y z
+BEGIN
+a := 5
+END
