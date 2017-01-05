@@ -156,10 +156,11 @@ command :
 	{
 
 	}
-	| WRITE value SEM
+	| WRITE value
 	{
 		if( $2.type == 1 ){
-			//printNumber( $2.string );
+			addCode( "PUT", 1, $2._register, 0 );
+			registers[ $2._register ] = 0;
 		}
 	}
 	| SKIP SEM
@@ -183,6 +184,7 @@ value :
 	{
 		$1.type = 1;
 		$1._register = findRegister();
+		$$ = $1;
 		saveRegister( $1._register, $1.string );
 	}
 	| identifier
