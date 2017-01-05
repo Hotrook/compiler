@@ -30,10 +30,17 @@
 		int index;
 	} identifiersTable;
 
+	typedef struct{
+		char* instr;
+		int nrOfArg;
+		int args[ 2 ];
+	} instruction;
+
 	typedef struct{ 
-		char* tab[ ASM_NUMBER ];
+		instruction* tab[ ASM_NUMBER ];
 		int index; 
-	} asmTable;
+	} intructionsTable;
+
 
     int yylineno;
     int yylex();
@@ -45,7 +52,7 @@
     int fault;
 
     identifiersTable idTab;
-    asmTable asmTab;
+    intructionsTable asmTab;
 %}
 
 %union{
@@ -199,8 +206,14 @@ void init(){
 
 void addCode( char * name,int nrOfArg, int firstArg, int secArg ){
 	
-	char * newCode = ( char * )malloc( strlen( name ) );
-	strcpy( newCode, name );
+	instruction * newCode = ( instruction * )malloc( sizeof( instruction ) );
+	newCode->instr = ( char * )malloc( strlen( name ) );
+
+	strcpy( newCode->instr, name );
+	newCode->nrOfArg = nrOfArg;
+	newCode->args[ 0 ] = firstArg;
+	newCode->args[ 1 ] = secArg;
+
 	asmTab.tab[ asmTab.index ] = newCode;
 	asmTab.index++;
 
@@ -311,6 +324,18 @@ int getIdIndex( char * id ){
 
 
 
+void printInstruction( int i ){
+	printf("%s", asmTab.tab[ i ]->instr );
+	for( int temp = 0 ; temp < asmTab.tab[ i ]->nrOfArg; ++temp ){
+		printf(" %d", asmTab.tab[ i ]->args[ temp ] );
+	}
+	printf("\n");
+}
+
+
+
+
+
 void parse( int argc, char * argv[] ){
 
 	if( argc == 2 ){
@@ -319,7 +344,7 @@ void parse( int argc, char * argv[] ){
 		yyparse();
 		if( fault == 0 ){
 			for( int i = 0 ; i < asmTab.index ; ++i )
-				printf("%s\n", asmTab.tab[ i ] );
+				printInstruction( i );
 		}
 
 	}
