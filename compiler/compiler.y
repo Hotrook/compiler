@@ -5,6 +5,7 @@
 
 	#define ID_NUMBER 10000 
 	#define ASM_NUMBER 10000 
+	#define REGISTER_NUMBER 5
 
 
 	void printArrayTable();
@@ -13,10 +14,12 @@
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
 	void print( char * string );
+	void saveRegister( int _register, char * string );
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
 	int stringToNum( char * num );
+	int findRegister( );
 
 	typedef struct{
 		char * name;
@@ -50,6 +53,7 @@
 
     int memoryIndex;
     int fault;
+    int registers[ 5 ];
 
     identifiersTable idTab;
     intructionsTable asmTab;
@@ -59,7 +63,8 @@
 	struct{
 		char * string;
 		int num;
-		int type;
+		int type; // 1 - number ( literal ), 2 - variable
+		int _register;
 	}  data;
 }
 
@@ -177,6 +182,8 @@ value :
 	NUM
 	{
 		$1.type = 1;
+		$1._register = findRegister();
+		saveRegister( $1._register, $1.string );
 	}
 	| identifier
 	{
@@ -197,6 +204,9 @@ void init(){
     asmTab.index = 0;
 	memoryIndex = 0;
 	fault = 0;
+	for( int i = 0 ; i < REGISTER_NUMBER ; ++i ){
+		registers[ i ] = 0;
+	}
 
 }
 
@@ -254,8 +264,48 @@ void print( char * string ){
 
 
 
+int findRegister( ){
+	for( int i = 4 ; i >= 0 ; --i ){
+		if( registers[ i ] == 0 )
+			return i ;
+	}
+	return -1;
+}
+
+
+
+
+
+void saveRegister( int _register, char * string ){
+	
+	registers[ _register ] = 1;
+	int num = atoi( string );
+	int counter = 0;
+	int tab[ 30 ];
+
+	while( num > 0 ){
+		tab[ counter++ ] = num % 2;
+		num = num / 2;
+	}
+
+	addCode( "ZERO", 1, _register, 0 );
+	for( int i = 0 ; i < counter ; ++i ){
+		if( tab[ i ] == 1 ){
+			addCode( "INC", 1, _register, 0 );
+		}
+
+		if( i != counter - 1 ){
+			addCode( "SHL", 1, _register, 0 );
+		}
+	}
+
+}
+
+
+
+
 int stringToNum( char * num ){
-	return atoi( num );	
+	return atoi( num );
 }
 
 
