@@ -69,6 +69,7 @@
 
 %type <data> value
 %type <data> identifier
+%type <data> expression
 
 %token <data> NUM
 %token <data> ID
@@ -144,8 +145,14 @@ commands : commands command
 	| command
 
 command : 
-	identifier ASG expression
+	identifier ASG expression SEM
 	{
+		int index = getIdIndex( $1.string );
+
+		if( index != - 1 ){
+			addCode("COPY", 1, $1._register, 0 );
+			addCode("STORE", 1, $3._register, 0 );
+		}
 
 	}
 	| IF condition THEN commands ELSE commands ENDIF
@@ -212,7 +219,19 @@ command :
 	}
 	| SKIP SEM
 
-expression : value
+expression : 
+	value
+	{
+		if( $1.type == 2 ){
+			int index = getIdIndex( $1.string );
+			int reg = $1._register;
+		
+			addCode("COPY", 1, reg, 0 );
+			addCode("LOAD", 1, reg, 0 );
+		
+		}
+		$$ = $1;
+	}
 	| value	PLUS value
 	| value MINUS value
 	| value MULT value
