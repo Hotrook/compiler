@@ -28,7 +28,7 @@
 		int mem;
 		int idType; // 1 - Number, 2 - array
 		int size;
-		int * initialized;
+		int initialized;
 	} identifier;
 
 	typedef struct{
@@ -154,7 +154,16 @@ command :
 	| FOR ID FROM value DOWNTO value DO commands ENDFOR
 	| READ identifier SEM
 	{
+		int reg = findRegister( );
+		addCode("GET", 1, reg, 0 );
 
+		int index = getIdIndex( $2.string );
+		if( index != -1 ){
+			if( idTab.tab[ index ]->idType == 1 ){
+			}
+			else{
+			}
+		}
 	}
 	| WRITE value SEM
 	{
@@ -172,7 +181,7 @@ command :
 
 			}
 			else if( idTab.tab[ index ]->idType == 1 ){
-				if( idTab.tab[ index ]->initialized[ 0 ] == 1 ){
+				if( idTab.tab[ index ]->initialized == 1 ){
 					
 					addCode("COPY", 1, $2._register, 0 );
 					addCode("LOAD", 1, $2._register, 0 );
@@ -186,22 +195,10 @@ command :
 				}
 			}
 			else{
-				if( $2.num != -1 && $2.num < idTab.tab[ index ]->size ){
-				
-					if( idTab.tab[ index ]->initialized[ $2.num ] == 1 ){
-	
-						addCode("COPY", 1, $2._register, 0 );
-						addCode("LOAD", 1, $2._register, 0 );
-						addCode("PUT", 1, $2._register, 0 );
-						registers[ $2._register ] = 0;
-	
-					}
-					else{
-						printf("<line %d> ERROR: niezaicjalizowana zmienna '%s[%d]'\n", yylineno, $2.string, $2.num );
-						fault = 1;
-					}
-
-				}
+				addCode("COPY", 1, $2._register, 0 );
+				addCode("LOAD", 1, $2._register, 0 );
+				addCode("PUT", 1, $2._register, 0 );
+				registers[ $2._register ] = 0;
 			}
 		
 		}
@@ -264,21 +261,26 @@ identifier :
 		$1.num = stringToNum( $3.string );
 		int index = getIdIndex( $1.string );
 		
-		if( $1.num < idTab.tab[ index ]->size ){
-			int reg = findRegister();
-			
-			saveRegister( reg, $1.num );
-			saveRegister( 0, idTab.tab[ index ]->mem );
+		if( index != -1 ){
+			if( $1.num < idTab.tab[ index ]->size ){
+				int reg = findRegister();
+				
+				saveRegister( reg, $1.num );
+				saveRegister( 0, idTab.tab[ index ]->mem );
 
-			addCode("ADD", 1, reg, 0 );
+				addCode("ADD", 1, reg, 0 );
 
-			$1._register = reg;
-			$$ = $1;
+				$1._register = reg;
+				$$ = $1;
 
+			}
+			else{
+				printf("<line %d> ERROR: przekroczenie zakresu tablicy '%s'\n", yylineno, idTab.tab[ index ]->name );
+				fault = 1;
+			}
 		}
 		else{
-			printf("<line %d> ERROR: przekroczenie zakresu tablicy '%s'\n", yylineno, idTab.tab[ index ]->name );
-			fault = 1;
+			printf("<line %d> ERROR: nie zdefiniowano tablicy '%s'\n", yylineno, $1.string );
 		}
 
 	}
@@ -299,7 +301,7 @@ identifier :
 		}
 		else{
 			if( idTab.tab[ index ]->idType == 1 && idTab.tab[ index2 ]->idType == 2 ){
-				if( idTab.tab[ index ]->initialized[ 0 ] == 1 ){
+				if( idTab.tab[ index ]->initialized == 1 ){
 					
 					int reg = findRegister();
 					int mem = idTab.tab[ index ]->mem;
@@ -476,11 +478,8 @@ void addId( char * name, int type, int size ){
 	id->idType = type;
 	id->mem = memoryIndex;
 	id->size = size;
-	id->initialized = ( int * ) malloc( 4*size );
+	id->initialized = 0;
 
-	for( int i = 0 ; i < size ; ++i ){
-		id->initialized[ i ] = 0 ;
-	}
 
 	if( type == 1 ){
 		memoryIndex++;
