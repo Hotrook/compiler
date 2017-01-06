@@ -16,6 +16,7 @@
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
 	void print( char * string );
 	void saveRegister( int _register, int num );
+	void freeRegisters( );
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
@@ -150,8 +151,16 @@ command :
 		int index = getIdIndex( $1.string );
 
 		if( index != - 1 ){
+			
 			addCode("COPY", 1, $1._register, 0 );
 			addCode("STORE", 1, $3._register, 0 );
+			
+			registers[ $3._register ] = 0;
+			registers[ $1._register ] = 0; 
+
+		}
+		else{
+			freeRegisters();
 		}
 
 	}
@@ -223,6 +232,7 @@ expression :
 	value
 	{
 		if( $1.type == 2 ){
+			
 			int index = getIdIndex( $1.string );
 			int reg = $1._register;
 		
@@ -233,6 +243,25 @@ expression :
 		$$ = $1;
 	}
 	| value	PLUS value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+			if( $1.type == 2 ){
+				addCode("COPY", 1, $1._register, 0 );
+				addCode("LOAD", 1, $1._register, 0 );
+			}
+			if( $3.type == 1 ){
+				addCode("ZERO", 1, 0 , 0 );
+				addCode("STORE", 1, $3._register, 0 );
+			}
+			addCode("ADD", 1, $1._register, 0 );
+			registers[ $3._register ] = 0;
+			$$.type = 1;
+			$$._register = $1._register;
+		}
+	}
 	| value MINUS value
 	| value MULT value
 	| value DIV value
@@ -477,6 +506,13 @@ void saveRegister( int _register, int num ){
 int stringToNum( char * num ){
 	return atoi( num );
 }
+
+
+
+
+
+void freeRegisters( ){}
+
 
 
 
