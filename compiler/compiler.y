@@ -54,6 +54,7 @@
     int memoryIndex;
     int fault;
     int registers[ 5 ];
+    int instrCounter;
 
     identifiersTable idTab;
     intructionsTable asmTab;
@@ -158,6 +159,8 @@ command :
 			registers[ $3._register ] = 0;
 			registers[ $1._register ] = 0; 
 
+			idTab.tab[ index ]->initialized = 1;
+
 		}
 		else{
 			freeRegisters();
@@ -256,6 +259,9 @@ expression :
 				addCode("ZERO", 1, 0 , 0 );
 				addCode("STORE", 1, $3._register, 0 );
 			}
+			else{
+				addCode("COPY", 1, $3._register, 0 );
+			}
 			addCode("ADD", 1, $1._register, 0 );
 			registers[ $3._register ] = 0;
 			$$.type = 1;
@@ -276,6 +282,9 @@ expression :
 				addCode("ZERO", 1, 0 , 0 );
 				addCode("STORE", 1, $3._register, 0 );
 			}
+			else{
+				addCode("COPY", 1, $3._register, 0 );
+			}
 			addCode("SUB", 1, $1._register, 0 );
 			registers[ $3._register ] = 0;
 			$$.type = 1;
@@ -283,6 +292,46 @@ expression :
 		}
 	}
 	| value MULT value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+			
+			int regB = $3._register;
+			int regResult = $1._register;
+			int regHelp = findRegister(); 
+
+			addCode("ZERO", 1, regHelp, 0 );
+			addCode("ZERO", 1, 0, 0 );
+
+			if( $3.type == 2 ){
+				addCode("COPY", 1, regB, 0 );
+				addCode("LOAD", 1, regB, 0 );
+			}
+			if( $1.type == 2 ){
+				addCode("COPY", 1, regResult, 0 );
+				addCode("LOAD", 1, regResult, 0 );
+			}
+			int jump;
+			addCode("JZERO", 2, regB, instrCounter+8 ); // @frost
+			int backJump = instrCounter-1;
+				jump = instrCounter + 2;
+			addCode("JODD", 2, regB, jump );
+				jump = instrCounter + 3;
+			addCode("JUMP", 1, jump, 0 );
+			addCode("STORE", 1, regResult, 0 );
+			addCode("ADD", 1, regHelp, 0 );
+			addCode("SHL", 1, regResult, 0 );
+			addCode("SHR", 1, regB, 0 );
+			addCode("JUMP", 1, backJump, 0 );
+
+			$$._register = regHelp ;
+			registers[ regB ] = 0;
+			registers[ regResult ] = 0;
+
+		}	
+	}
 	| value DIV value
 	| value MOD value
 
@@ -422,6 +471,7 @@ void init(){
     idTab.index = 0;
     asmTab.index = 0;
 	memoryIndex = 5;
+	instrCounter = 0;
 	fault = 0;
 	for( int i = 0 ; i < REGISTER_NUMBER ; ++i ){
 		registers[ i ] = 0;
@@ -445,6 +495,8 @@ void addCode( char * name,int nrOfArg, int firstArg, int secArg ){
 
 	asmTab.tab[ asmTab.index ] = newCode;
 	asmTab.index++;
+
+	instrCounter++;
 
 }
 
@@ -622,8 +674,10 @@ void parse( int argc, char * argv[] ){
 		init();
 		yyparse();
 		if( fault == 0 ){
-			for( int i = 0 ; i < asmTab.index ; ++i )
+			for( int i = 0 ; i < asmTab.index ; ++i ){
+				//printf("%d: ", i );
 				printInstruction( i );
+			}
 		}
 
 	}
