@@ -154,15 +154,22 @@ command :
 	| FOR ID FROM value DOWNTO value DO commands ENDFOR
 	| READ identifier SEM
 	{
-		int reg = findRegister( );
+		int reg = findRegister();
 		addCode("GET", 1, reg, 0 );
 
 		int index = getIdIndex( $2.string );
 		if( index != -1 ){
-			if( idTab.tab[ index ]->idType == 1 ){
-			}
-			else{
-			}
+
+			int regId = $2._register;
+
+			addCode("COPY", 1, regId, 0 );
+			addCode("STORE", 1, reg, 0 );
+
+			if( idTab.tab[ index ]->idType == 1 )
+				idTab.tab[ index ]->initialized = 1;
+
+			registers[ regId ] = 0;
+
 		}
 	}
 	| WRITE value SEM
@@ -266,7 +273,9 @@ identifier :
 				int reg = findRegister();
 				
 				saveRegister( reg, $1.num );
-				saveRegister( 0, idTab.tab[ index ]->mem );
+				addCode("ZERO", 1, 0, 1 );
+				addCode("STORE", 1, reg, 1 );
+				saveRegister( reg, idTab.tab[ index ]->mem );
 
 				addCode("ADD", 1, reg, 0 );
 
@@ -309,15 +318,15 @@ identifier :
 					saveRegister( reg, mem );
 					
 					addCode("COPY", 1, reg, 0 );
-					
+
 					int reg2 = findRegister();
 					mem = idTab.tab[ index2 ]->mem ;
 
-					saveRegister( 0, mem );
+					saveRegister( reg, mem );
 					addCode("ADD", 1, reg, 0 );
 
 					$1._register = reg;
-					registers[ reg ] = 0;
+					registers[ reg ] = 1;
 
 					$$ = $1;
 
@@ -345,7 +354,7 @@ void init(){
  
     idTab.index = 0;
     asmTab.index = 0;
-	memoryIndex = 0;
+	memoryIndex = 5;
 	fault = 0;
 	for( int i = 0 ; i < REGISTER_NUMBER ; ++i ){
 		registers[ i ] = 0;
