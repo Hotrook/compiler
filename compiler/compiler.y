@@ -186,10 +186,22 @@ command :
 				}
 			}
 			else{
-				addCode("COPY", 1, $2._register, 0 );
-				addCode("LOAD", 1, $2._register, 0 );
-				addCode("PUT", 1, $2._register, 0 );
-				registers[ $2._register ] = 0;
+				if( $2.num != -1 && $2.num < idTab.tab[ index ]->size ){
+				
+					if( idTab.tab[ index ]->initialized[ $2.num ] == 1 ){
+	
+						addCode("COPY", 1, $2._register, 0 );
+						addCode("LOAD", 1, $2._register, 0 );
+						addCode("PUT", 1, $2._register, 0 );
+						registers[ $2._register ] = 0;
+	
+					}
+					else{
+						printf("<line %d> ERROR: niezaicjalizowana zmienna '%s[%d]'\n", yylineno, $2.string, $2.num );
+						fault = 1;
+					}
+
+				}
 			}
 		
 		}
@@ -221,10 +233,7 @@ value :
 	}
 	| identifier
 	{
-		$1.type = 2;
-
 		$$ = $1;
-		//$2.type = 1;
 	}
 
 identifier : 
@@ -312,7 +321,7 @@ identifier :
 
 				}
 				else{
-					printf("<line %d> ERROR: niezaicjalizowana zmienna: '%s'\n", yylineno, $3.string );
+					printf("<line %d> ERROR: niezaicjalizowana zmienna '%s'\n", yylineno, $3.string );
 					fault = 1;
 				}
 			}
