@@ -263,6 +263,25 @@ expression :
 		}
 	}
 	| value MINUS value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+			if( $1.type == 2 ){
+				addCode("COPY", 1, $1._register, 0 );
+				addCode("LOAD", 1, $1._register, 0 );			
+			}
+			if( $3.type == 1 ){
+				addCode("ZERO", 1, 0 , 0 );
+				addCode("STORE", 1, $3._register, 0 );
+			}
+			addCode("SUB", 1, $1._register, 0 );
+			registers[ $3._register ] = 0;
+			$$.type = 1;
+			$$._register = $1._register;
+		}
+	}
 	| value MULT value
 	| value DIV value
 	| value MOD value
