@@ -10,22 +10,25 @@
 
 	void printArrayTable();
 
-	void addId( char * name, int type );
+    void yyerror(const char *s);
+	void addId( char * name, int type, int size );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
 	void print( char * string );
-	void saveRegister( int _register, char * string );
+	void saveRegister( int _register, int num );
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
 	int stringToNum( char * num );
 	int findRegister( );
+    int yylex();
 
 	typedef struct{
 		char * name;
-		char * value;
 		int mem;
-		int type; // 1 - Number, 2 - array
+		int idType; // 1 - Number, 2 - array
+		int size;
+		int * initialized;
 	} identifier;
 
 	typedef struct{
@@ -45,12 +48,8 @@
 	} intructionsTable;
 
 
-    int yylineno;
-    int yylex();
-    void yyerror(const char *s) { 
-    	printf("ERROR: %d\n", yylineno); 
-    }
 
+    int yylineno;
     int memoryIndex;
     int fault;
     int registers[ 5 ];
@@ -69,6 +68,7 @@
 }
 
 %type <data> value
+%type <data> identifier
 
 %token <data> NUM
 %token <data> ID
@@ -129,7 +129,7 @@ vdeclarations:
 	vdeclarations ID
 	{
 		if( checkVar( $2.string ) ){
-			addId( $2.string, 1 );
+			addId( $2.string, 1, 1 );
 		}
 	}
 	| vdeclarations ID OPN NUM CLS
@@ -144,7 +144,7 @@ commands : commands command
 	| command
 
 command : 
-	ID ASG expression
+	identifier ASG expression
 	{
 
 	}
@@ -152,15 +152,46 @@ command :
 	| WHILE condition DO commands ENDWHILE
 	| FOR ID FROM value TO value DO commands ENDFOR
 	| FOR ID FROM value DOWNTO value DO commands ENDFOR
-	| READ ID SEM
+	| READ identifier SEM
 	{
 
 	}
-	| WRITE value
+	| WRITE value SEM
 	{
 		if( $2.type == 1 ){
+			
 			addCode( "PUT", 1, $2._register, 0 );
 			registers[ $2._register ] = 0;
+
+		}
+		else if( $2.type == 2){
+			
+			int index = getIdIndex( $2.string );
+
+			if( index == -1 ){
+
+			}
+			else if( idTab.tab[ index ]->idType == 1 ){
+				if( idTab.tab[ index ]->initialized[ 0 ] == 1 ){
+					
+					addCode("COPY", 1, $2._register, 0 );
+					addCode("LOAD", 1, $2._register, 0 );
+					addCode("PUT", 1, $2._register, 0 );
+					registers[ $2._register ] = 0;
+
+				}
+				else{
+					printf("<line %d> ERROR: niezaicjalizowana zmienna: '%s'\n", yylineno, $2.string );
+					fault = 1;
+				}
+			}
+			else{
+				addCode("COPY", 1, $2._register, 0 );
+				addCode("LOAD", 1, $2._register, 0 );
+				addCode("PUT", 1, $2._register, 0 );
+				registers[ $2._register ] = 0;
+			}
+		
 		}
 	}
 	| SKIP SEM
@@ -185,16 +216,115 @@ value :
 		$1.type = 1;
 		$1._register = findRegister();
 		$$ = $1;
-		saveRegister( $1._register, $1.string );
+		int temp = stringToNum( $1.string );
+		saveRegister( $1._register, temp );
 	}
 	| identifier
 	{
+		$1.type = 2;
+
+		$$ = $1;
 		//$2.type = 1;
 	}
 
-identifier : ID
-	| ID OPN IF CLS
-	| ID OPN NUM CLS
+identifier : 
+	ID
+	{
+		$1.type = 2;
+		
+		int index = getIdIndex( $1.string );
+
+		if( index == -1 ){
+			printf("<line %d> ERROR: nie zdefiniowano zmiennej '%s'\n", yylineno, $1.string );
+			fault = 1;
+		}
+		else{
+			int reg = findRegister();
+			int mem = idTab.tab[ index ]->mem;
+			saveRegister( reg, mem );
+
+			$1._register = reg;
+			registers[ reg ] = 1;
+
+			$$ = $1;
+		}
+
+	}
+	| ID OPN NUM CLS{
+		$1.type = 2;
+		$1.num = stringToNum( $3.string );
+		int index = getIdIndex( $1.string );
+		
+		if( $1.num < idTab.tab[ index ]->size ){
+			int reg = findRegister();
+			
+			saveRegister( reg, $1.num );
+			saveRegister( 0, idTab.tab[ index ]->mem );
+
+			addCode("ADD", 1, reg, 0 );
+
+			$1._register = reg;
+			$$ = $1;
+
+		}
+		else{
+			printf("<line %d> ERROR: przekroczenie zakresu tablicy '%s'\n", yylineno, idTab.tab[ index ]->name );
+			fault = 1;
+		}
+
+	}
+	| ID OPN ID CLS{
+		// saving memory index to register
+		$1.type = 2;
+		int index = getIdIndex( $3.string );
+		int index2 = getIdIndex( $1.string );
+
+		if( index == -1 || index2 == -1 ){
+
+			if( index == -1 )
+				printf("<line %d> ERROR: nie zdefiniowano zmiennej; '%s'\n", yylineno, $3.string );	
+			if( index2 == -1 )
+				printf("<line %d> ERROR: nie zdefiniowano zmiennej; '%s'\n", yylineno, $1.string );
+				
+			fault = 1;
+		}
+		else{
+			if( idTab.tab[ index ]->idType == 1 && idTab.tab[ index2 ]->idType == 2 ){
+				if( idTab.tab[ index ]->initialized[ 0 ] == 1 ){
+					
+					int reg = findRegister();
+					int mem = idTab.tab[ index ]->mem;
+					
+					saveRegister( reg, mem );
+					
+					addCode("COPY", 1, reg, 0 );
+					
+					int reg2 = findRegister();
+					mem = idTab.tab[ index2 ]->mem ;
+
+					saveRegister( 0, mem );
+					addCode("ADD", 1, reg, 0 );
+
+					$1._register = reg;
+					registers[ reg ] = 0;
+
+					$$ = $1;
+
+				}
+				else{
+					printf("<line %d> ERROR: niezaicjalizowana zmienna: '%s'\n", yylineno, $3.string );
+					fault = 1;
+				}
+			}
+			else{
+				if( idTab.tab[ index ]->idType != 1 )
+					printf("<line %d> ERROR: podana zmienna, jest nazwą tablicy: '%s'\n", yylineno, $3.string );
+				if( idTab.tab[ index2 ]->idType != 2 )
+					printf("<line %d> ERROR: podana zmienna, jest nazwą tablicy: '%s'\n", yylineno, $1.string );
+				fault = 1;
+			}
+		}
+	}
 %%
 
 
@@ -278,10 +408,9 @@ int findRegister( ){
 
 
 
-void saveRegister( int _register, char * string ){
+void saveRegister( int _register, int num ){
 	
 	registers[ _register ] = 1;
-	int num = atoi( string );
 	int counter = 0;
 	int tab[ 30 ];
 
@@ -291,12 +420,12 @@ void saveRegister( int _register, char * string ){
 	}
 
 	addCode( "ZERO", 1, _register, 0 );
-	for( int i = 0 ; i < counter ; ++i ){
+	for( int i = counter-1 ; i >= 0 ; --i ){
 		if( tab[ i ] == 1 ){
 			addCode( "INC", 1, _register, 0 );
 		}
 
-		if( i != counter - 1 ){
+		if( i != 0 ){
 			addCode( "SHL", 1, _register, 0 );
 		}
 	}
@@ -318,7 +447,7 @@ int checkVar( char * name ){
 	
 	int index = getIdIndex( name);
 	if( index > -1 ){
-		printf("<line: %d> Error: Nazwa '%s' została już użyta.\n", yylineno, name );
+		printf("<line: %d> ERROR: Nazwa '%s' została już użyta.\n", yylineno, name );
 		return 0;
 	}
 	return 1;
@@ -329,14 +458,20 @@ int checkVar( char * name ){
 
 
 
-void addId( char * name, int type ){
+void addId( char * name, int type, int size ){
 	
 	identifier * id = ( identifier * )malloc( sizeof( identifier ) );
 	
 	id->name = ( char * ) malloc( strlen( name ) );
 	strcpy( id->name, name );
-	id->type = type;
+	id->idType = type;
 	id->mem = memoryIndex;
+	id->size = size;
+	id->initialized = ( int * ) malloc( 4*size );
+
+	for( int i = 0 ; i < size ; ++i ){
+		id->initialized[ i ] = 0 ;
+	}
 
 	if( type == 1 ){
 		memoryIndex++;
@@ -353,8 +488,9 @@ void addId( char * name, int type ){
 
 void addArrayId( char * name, int type, char * num ){
 	
-	addId( name, type );
-	memoryIndex += stringToNum( num );
+	int number = stringToNum( num );
+	addId( name, type, number );
+	memoryIndex += number;
 
 }
 
@@ -390,7 +526,7 @@ void printInstruction( int i ){
 
 void parse( int argc, char * argv[] ){
 
-	if( argc == 2 ){
+	if( 1 ){ // DO ZMIANNY @frost
 		
 		init();
 		yyparse();
@@ -415,12 +551,22 @@ void printArrayTable(){
 
 	for( int i = 0 ; i < idTab.index ; ++i ){
 		printf("\t%s\n",idTab.tab[ i ]->name);
-		printf("\t%d\n",idTab.tab[ i ]->type);
+		printf("\t%d\n",idTab.tab[ i ]->idType);
 		printf("\t%d\n",idTab.tab[ i ]->mem);
 		printf("\n");
 	}
 
 }
+
+ 
+
+
+
+void yyerror(const char *s) { 
+	printf("<line %d> ERROR: Błąd składni.\n", yylineno); 
+	fault = 1;
+}
+
 
 
 
