@@ -333,6 +333,47 @@ expression :
 		}	
 	}
 	| value DIV value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+
+			int reg1 = $1._register;
+			int reg2 = $3._register; 
+			int reg3 = findRegister();
+
+			if( $1.type == 2 ){
+				addCode( "COPY", 1, reg1, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+			}			
+			if( $3.type == 2 ){
+				addCode( "COPY", 1, reg2, 0 );
+				addCode( "LOAD", 1, reg2, 0 );
+			}
+
+			addCode( "JUMP", 1, @edit, 0 ); //@frost
+			addCode( "JZERO", 2, reg3, @edit ); //@frost
+			addCode( "SHL", 1, reg2, 0 );
+
+			//@edit
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "STORE", 1, reg1, 0 );
+			addCode( "INC", 1, 1, 0 );
+			addCode( "STORE", 1, reg2, 0 );
+
+			addCode( "SUB", 1, reg1, 0 );
+
+			addCode( "LOAD", 1, reg3, 0 );
+			addCode( "INC", 1, 0 , 0 );
+			addCode( "STORE", 1, reg1, 0 );
+			addCode( "SUB", 1, reg3, 0 );
+
+			addCode( "JUMP", 1, @edit, 0 ); //@frost
+			//@finish
+		}
+	}
 	| value MOD value
 
 condition : value EQ value
