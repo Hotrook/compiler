@@ -20,14 +20,14 @@
 <comment>"}"	BEGIN(INITIAL);
 
 
-"+"			{ return PLUS; 		}
+"+"		 	{ return PLUS; 		}
 "-"			{ return MINUS;		}
 "/"			{ return DIV;		}
 "*"			{ return MULT;		}
 "%"			{ return MOD; 		}
 
 "="			{ return EQ; 		}
-"<>" 		{ return UNEQ; 		}
+"<>"		{ return UNEQ; 		}
 ">=" 		{ return MOREEQ;	}
 "<=" 		{ return LESSEQ;	}
 ">"			{ return MORE; 		}
