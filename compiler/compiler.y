@@ -10,7 +10,7 @@
 
 	void printArrayTable();
 
-    void yyerror(const char *s);
+	void yyerror(const char *s);
 	void addId( char * name, int type, int size );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
@@ -22,7 +22,7 @@
 	int getIdIndex( char * id );
 	int stringToNum( char * num );
 	int findRegister( );
-    int yylex();
+	int yylex();
 
 	typedef struct{
 		char * name;
