@@ -20,18 +20,18 @@
 <comment>"}"	BEGIN(INITIAL);
 
 
-"+"		 	{ return PLUS; 		}
-"-"			{ return MINUS;		}
-"/"			{ return DIV;		}
-"*"			{ return MULT;		}
-"%"			{ return MOD; 		}
+"+"  		{ return PLUS; 		}
+"-"  		{ return MINUS;		}
+"/"  		{ return DIV;		}
+"*"  		{ return MULT;		}
+"%"  		{ return MOD; 		}
 
 "="   		{ return EQ; 		}
 "<>"		{ return UNEQ; 		}
 ">=" 		{ return MOREEQ;	}
 "<=" 		{ return LESSEQ;	}
-">"			{ return MORE; 		}
-"<"			{ return LESS; 		}
+">"  		{ return MORE; 		}
+"<"  		{ return LESS; 		}
 
 ":=" 		{ return ASG; 		}
 
