@@ -728,7 +728,72 @@ condition :
 		}
 	}
 	| value LESSEQ value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+
+			int reg1 = $1._register;
+			int reg2 = $3._register;
+
+			if( $1.type == 2 ){
+				addCode( "COPY", 1, 0, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+			}
+			if( $3.type == 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg2, 0 );
+			}
+			else{
+				addCode( "COPY", 1, reg2, 0 );
+			}
+
+			addCode( "SUB", 1, reg1, 0 );
+
+			addCode( "JZERO", 2, reg1, instrCounter + 3 );
+			addCode( "ZERO", 1, reg1, 0 );
+			addCode( "JUMP", 1, instrCounter + 2, 0 );
+			addCode( "INC", 1, reg1, 0 );
+
+			$$._register = reg1;
+			registers[ reg2 ] = 0;
+		}
+	}
 	| value MOREEQ value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+
+			int reg1 = $1._register;
+			int reg2 = $3._register;
+
+			if( $3.type == 2 ){
+				addCode( "COPY", 1, reg2, 0 );
+				addCode( "LOAD", 1, reg2, 0 );
+			}
+			if( $1.type == 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg1, 0 );
+			}
+			else{
+				addCode( "COPY", 1, reg1, 0 );
+			}
+
+			addCode( "SUB", 1, reg2, 0 );
+
+			addCode( "JZERO", 2, reg2, instrCounter+3 );
+			addCode( "ZERO", 1, reg2, 0 );
+			addCode( "JUMP", 1, instrCounter+2 , 0 );
+			addCode( "INC", 1, reg2, 0 );
+
+			$$._register = reg2;
+			registers[ reg1 ] = 0;
+
+		}
+	}
 
 value : 
 	NUM
