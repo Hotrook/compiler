@@ -20,53 +20,54 @@
 <comment>"}"	BEGIN(INITIAL);
 
 
-"+"				{ return PLUS; 		}
-"-"				{ return MINUS;		}
-"/"				{ return DIV;		}
-"*"				{ return MULT;		}
-"%"				{ return MOD; 		}
+"+"			{ return PLUS; 		}
+"-"			{ return MINUS;		}
+"/"			{ return DIV;		}
+"*"			{ return MULT;		}
+"%"			{ return MOD; 		}
 
-"="				{ return EQ; 		}
-"<>"			{ return UNEQ; 		}
-">="			{ return MOREEQ;	}
-"<="			{ return LESSEQ;	}
-">"				{ return MORE; 		}
-"<"				{ return LESS; 		}
+"="			{ return EQ; 		}
+"<>"		{ return UNEQ; 		}
+">="		{ return MOREEQ;	}
+"<="		{ return LESSEQ;	}
+">"			{ return MORE; 		}
+"<"			{ return LESS; 		}
 
-":="			{ return ASG; 		}
+":="		{ return ASG; 		}
 
-"["				{ return OPN; 		}
-"]"				{ return CLS; 		}
+"["			{ return OPN; 		}
+"]"			{ return CLS; 		}
 
-VAR				{ return VAR;		}
-BEGIN			{ return BEG;		}
-END				{ return END;		}
+VAR			{ return VAR;		}
+BEGIN		{ return BEG;		}
+END			{ return END;		}
 
-FROM			{ return FOR;		}
-ENDFOR			{ return ENDFOR;	}
-DOWN			{ return DO;		}
-TO				{ return TO;		}
-DOWNOTO			{ return DOWNTO; 	}
-FROM			{ return FROM;		}
+FROM		{ return FOR;		}
+ENDFOR		{ return ENDFOR;	}
+DOWN		{ return DO;		}
+TO			{ return TO;		}
+DOWNOTO		{ return DOWNTO; 	}
+FROM		{ return FROM;		}
 
-WHILE			{ return WHILE; 	}
-ENDWHILE		{ return ENDWHILE; 	}
+WHILE		{ return WHILE; 	}
+ENDWHILE	{ return ENDWHILE; 	}
 
-IF				{ return IF;		}
-THEN			{ return THEN; 		}
-ELSE			{ return ELSE;		}
-ENDIF			{ return ENDIF; 	}
+IF			{ return IF;		}
+THEN		{ return THEN; 		}
+ELSE		{ return ELSE;		}
+ENDIF		{ return ENDIF; 	}
 
-SKIP			{ return SKIP;		}
+SKIP		{ return SKIP;		}
 
-WRITE			{ return WRITE;		}
-READ			{ return READ;		}
+WRITE		{ return WRITE;		}
+READ		{ return READ;		}
 
-";"				{ return SEM; 	}
+";"			{ return SEM; 	}
 
-[0-9]+			{ yylval.data.string = ( char * ) strdup( yytext ); return NUM;	}
-[_a-z]+			{ yylval.data.string = ( char * ) strdup( yytext ); return ID; 	}
+[0-9]+		{ yylval.data.string = ( char * ) strdup( yytext ); return NUM;	}
+[_a-z]+		{ yylval.data.string = ( char * ) strdup( yytext ); return ID; 	}
 
 
-.				;
+.			;
+
 %%
