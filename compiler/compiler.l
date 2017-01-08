@@ -21,7 +21,7 @@
 
 
 "+"				{ return PLUS; 		}
-"-" 			{ return MINUS;		}
+"-"				{ return MINUS;		}
 "/"				{ return DIV;		}
 "*"				{ return MULT;		}
 "%"				{ return MOD; 		}
