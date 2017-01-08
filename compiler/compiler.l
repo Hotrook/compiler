@@ -27,9 +27,9 @@
 "%"			{ return MOD; 		}
 
 "="			{ return EQ; 		}
-"<>"		{ return UNEQ; 		}
-">="		{ return MOREEQ;	}
-"<="		{ return LESSEQ;	}
+"<>" 		{ return UNEQ; 		}
+">=" 		{ return MOREEQ;	}
+"<=" 		{ return LESSEQ;	}
 ">"			{ return MORE; 		}
 "<"			{ return LESS; 		}
 
@@ -44,8 +44,8 @@ END			{ return END;		}
 
 FROM		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
-DOWN		{ return DO;		}
-TO		{ return TO;		}
+DOWN 		{ return DO;		}
+TO			{ return TO;		}
 DOWNOTO		{ return DOWNTO; 	}
 FROM		{ return FROM;		}
 
