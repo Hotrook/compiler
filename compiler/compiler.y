@@ -50,14 +50,14 @@
 
 
 
-    int yylineno;
-    int memoryIndex;
-    int fault;
-    int registers[ 5 ];
-    int instrCounter;
+	int yylineno;
+	int memoryIndex;
+	int fault;
+	int registers[ 5 ];
+	int instrCounter;
 
-    identifiersTable idTab;
-    intructionsTable asmTab;
+	identifiersTable idTab;
+	intructionsTable asmTab;
 %}
 
 %union{
