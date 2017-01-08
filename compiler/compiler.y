@@ -399,29 +399,10 @@ expression :
 			addCode( "ZERO", 1, reg3, 0 );
 			addCode( "STORE", 1, reg3, 0 );
 
-			addCode( "JUMP", 1, instrCounter+17, 0 );
+			addCode( "JUMP", 1, instrCounter+27, 0 );
 
-			addCode( "JZERO", 2, reg3, instrCounter+2 );
+			addCode( "JZERO", 2, reg3, instrCounter+32 );
 				backJump = instrCounter - 1;
-				addCode( "JUMP", 1, instrCounter+22, 0 );
-				addCode( "SHR", 1, reg2, 0 );
-				addCode( "DEC", 1, 0, 0 );
-				addCode( "SUB", 1, reg1, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-
-				addCode( "LOAD", 1, reg3, 0 );
-				addCode( "INC", 1, 0 , 0 );
-				addCode( "ADD", 1, reg3, 0 );
-				
-				addCode( "DEC", 1, 0, 0 );
-				addCode( "STORE", 1, reg3, 0 );
-
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
-
-				addCode( "SHR", 1, reg3, 0 );
-				addCode( "STORE", 1, reg3, 0 );
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "STORE", 1, reg2, 0 );
@@ -429,6 +410,41 @@ expression :
 				addCode( "INC", 1, 0, 0 );
 				addCode( "STORE", 1, reg1, 0 );
 				addCode( "SUB", 1, reg3, 0 );
+
+				addCode( "JZERO", 2, reg3, instrCounter+2 );
+				
+				addCode( "JUMP", 1, instrCounter+10, 0 );
+
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "SUB", 1, reg1, 0 );
+					addCode( "INC", 1, 0, 0 );
+					addCode( "INC", 1, 0, 0 );
+
+					addCode( "LOAD", 1, reg3, 0 );
+					addCode( "INC", 1, 0 , 0 );
+					addCode( "ADD", 1, reg3, 0 );
+				
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "STORE", 1, reg3, 0 );
+
+				addCode( "SHR", 1, reg2, 0 );
+				
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+
+				addCode( "SHR", 1, reg3, 0 );
+				addCode( "STORE", 1, reg3, 0 );
+
+
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+
 			addCode( "JUMP", 1, backJump, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
