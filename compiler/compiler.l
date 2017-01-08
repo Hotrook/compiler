@@ -35,14 +35,14 @@
 
 ":=" 		{ return ASG; 		}
 
-"["			{ return OPN; 		}
-"]"			{ return CLS; 		}
+"["  		{ return OPN; 		}
+"]"  		{ return CLS; 		}
 
 VAR			{ return VAR;		}
 BEGIN		{ return BEG;		}
 END			{ return END;		}
 
-FROM		{ return FOR;		}
+FROM  		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
 DOWN 		{ return DO;		}
 TO			{ return TO;		}
