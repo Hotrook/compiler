@@ -45,14 +45,14 @@ END  		{ return END;		}
 FROM  		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
 DOWN 		{ return DO;		}
-TO			{ return TO;		}
+TO  		{ return TO;		}
 DOWNOTO		{ return DOWNTO; 	}
 FROM		{ return FROM;		}
 
 WHILE		{ return WHILE; 	}
 ENDWHILE	{ return ENDWHILE; 	}
 
-IF			{ return IF;		}
+IF  		{ return IF;		}
 THEN		{ return THEN; 		}
 ELSE		{ return ELSE;		}
 ENDIF		{ return ENDIF; 	}
