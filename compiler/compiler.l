@@ -42,9 +42,9 @@ VAR				{ return VAR;		}
 BEGIN			{ return BEG;		}
 END				{ return END;		}
 
-FOR				{ return FOR;		}
+FROM			{ return FOR;		}
 ENDFOR			{ return ENDFOR;	}
-DO 				{ return DO;		}
+DOWN			{ return DO;		}
 TO				{ return TO;		}
 DOWNOTO			{ return DOWNTO; 	}
 FROM			{ return FROM;		}
