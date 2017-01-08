@@ -458,6 +458,130 @@ expression :
 		}
 	}
 	| value MOD value
+	{
+		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+
+		if( index1 != -1 && index2 != -1 ){
+
+			int reg1 = $1._register;
+			int reg2 = $3._register; 
+			int reg3 = findRegister();
+
+			if( $1.type == 2 ){
+				addCode( "COPY", 1, reg1, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+			}			
+			if( $3.type == 2 ){
+				addCode( "COPY", 1, reg2, 0 );
+				addCode( "LOAD", 1, reg2, 0 );
+			}
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "SHL", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+
+			addCode( "ZERO", 1, reg3, 0 );
+			addCode( "INC", 1, reg3, 0 );
+			addCode( "STORE", 1, reg3, 0 );
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "STORE", 1, reg1, 0 );
+
+			addCode( "JUMP", 1, instrCounter+10, 0 ); 
+			
+			addCode( "JZERO", 2, reg3, instrCounter+2 ); 
+				int backJump = instrCounter - 1;
+
+				addCode( "JUMP", 1, instrCounter + 16 , 0 );
+				
+				addCode( "SHL", 1, reg2, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+				addCode( "SHL", 1, reg3, 0 );
+				addCode( "STORE", 1, reg3, 0 );
+
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+				
+				addCode( "INC", 1, 0, 0 );
+				addCode( "STORE", 1, reg2, 0 );
+
+				addCode( "SUB", 1, reg1, 0 );
+
+				addCode( "LOAD", 1, reg3, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "STORE", 1, reg1, 0 );
+				addCode( "SUB", 1, reg3, 0 );
+
+			addCode( "JUMP", 1, backJump, 0 ); 
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "LOAD", 1, reg1, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "ZERO", 1, reg3, 0 );
+			addCode( "STORE", 1, reg3, 0 );
+
+			addCode( "JUMP", 1, instrCounter+27, 0 );
+
+			addCode( "JZERO", 2, reg3, instrCounter+32 );
+				backJump = instrCounter - 1;
+
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg2, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "STORE", 1, reg1, 0 );
+				addCode( "SUB", 1, reg3, 0 );
+
+				addCode( "JZERO", 2, reg3, instrCounter+2 );
+				
+				addCode( "JUMP", 1, instrCounter+10, 0 );
+
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "SUB", 1, reg1, 0 );
+					addCode( "INC", 1, 0, 0 );
+					addCode( "INC", 1, 0, 0 );
+
+					addCode( "LOAD", 1, reg3, 0 );
+					addCode( "INC", 1, 0 , 0 );
+					addCode( "ADD", 1, reg3, 0 );
+				
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "STORE", 1, reg3, 0 );
+
+				addCode( "SHR", 1, reg2, 0 );
+				
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+
+				addCode( "SHR", 1, reg3, 0 );
+				addCode( "STORE", 1, reg3, 0 );
+
+
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "LOAD", 1, reg3, 0 );
+
+			addCode( "JUMP", 1, backJump, 0 );
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 ); 
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg3, 0 );
+
+			$$._register = reg1;
+			registers[ reg3 ] = 0;
+			registers[ reg2 ] = 0; 
+		}
+	}
 
 condition : value EQ value
 	| value UNEQ value
