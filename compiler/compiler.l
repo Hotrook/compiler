@@ -62,7 +62,7 @@ SKIP		{ return SKIP;		}
 WRITE		{ return WRITE;		}
 READ		{ return READ;		}
 
-";"			{ return SEM; 	}
+";"  		{ return SEM; 	}
 
 [0-9]+		{ yylval.data.string = ( char * ) strdup( yytext ); return NUM;	}
 [_a-z]+		{ yylval.data.string = ( char * ) strdup( yytext ); return ID; 	}
