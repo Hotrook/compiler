@@ -42,7 +42,7 @@ VAR  		{ return VAR;		}
 BEGIN		{ return BEG;		}
 END  		{ return END;		}
 
-FROM  		{ return FOR;		}
+FOR  		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
 DOWN 		{ return DO;		}
 TO  		{ return TO;		}
