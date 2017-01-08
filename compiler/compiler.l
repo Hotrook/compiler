@@ -38,8 +38,8 @@
 [			{ return OPN; 		}
 ]			{ return CLS; 		}
 
-VAR			{ return VAR;		}
-BEGIN		{ return BEG;		}
+VAR 		{ return VAR;		}
+BEGIN   	{ return BEG;		}
 END			{ return END;		}
 
 FROM		{ return FOR;		}
