@@ -33,7 +33,7 @@
 ">"			{ return MORE; 		}
 "<"			{ return LESS; 		}
 
-":="		{ return ASG; 		}
+":=" 		{ return ASG; 		}
 
 "["			{ return OPN; 		}
 "]"			{ return CLS; 		}
