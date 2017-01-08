@@ -38,9 +38,9 @@
 "["  		{ return OPN; 		}
 "]"  		{ return CLS; 		}
 
-VAR			{ return VAR;		}
+VAR  		{ return VAR;		}
 BEGIN		{ return BEG;		}
-END			{ return END;		}
+END  		{ return END;		}
 
 FROM  		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
