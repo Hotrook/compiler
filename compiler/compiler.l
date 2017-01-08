@@ -26,17 +26,17 @@
 "*"			{ return MULT;		}
 "%"			{ return MOD; 		}
 
-"="			{ return EQ; 		}
-"<>"		{ return UNEQ; 		}
-">=" 		{ return MOREEQ;	}
-"<=" 		{ return LESSEQ;	}
-">"			{ return MORE; 		}
-"<"			{ return LESS; 		}
+=			{ return EQ; 		}
+<>			{ return UNEQ; 		}
+>=	 		{ return MOREEQ;	}
+<=	 		{ return LESSEQ;	}
+>			{ return MORE; 		}
+<			{ return LESS; 		}
 
-":=" 		{ return ASG; 		}
+:=	 		{ return ASG; 		}
 
-"["			{ return OPN; 		}
-"]"			{ return CLS; 		}
+[			{ return OPN; 		}
+]			{ return CLS; 		}
 
 VAR			{ return VAR;		}
 BEGIN		{ return BEG;		}
