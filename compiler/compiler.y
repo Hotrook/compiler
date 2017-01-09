@@ -6,7 +6,7 @@
 	#define ID_NUMBER 10000 
 	#define ASM_NUMBER 10000 
 	#define REGISTER_NUMBER 5
-
+	#define JUMP_NUMBER 1000000
 
 	void printArrayTable();
 
@@ -17,11 +17,15 @@
 	void print( char * string );
 	void saveRegister( int _register, int num );
 	void freeRegisters( );
+	void addJump( int instrNumber );
+	void editArgument( int codeNumber, int argNumber, int value );
+
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
 	int stringToNum( char * num );
 	int findRegister( );
+	int getJump();
 	int yylex();
 
 	typedef struct{
@@ -48,6 +52,10 @@
 		int index; 
 	} intructionsTable;
 
+	typedef struct{
+		int tab[ JUMP_NUMBER ];
+		int top;
+	} jumpStack;
 
 
 	int yylineno;
@@ -58,6 +66,8 @@
 
 	identifiersTable idTab;
 	intructionsTable asmTab;
+	jumpStack js;
+
 %}
 
 %union{
@@ -168,7 +178,29 @@ command :
 		}
 
 	}
-	| IF condition THEN commands ELSE commands ENDIF
+	| IF condition 
+	{
+		int reg = $2._register;
+
+		addCode("JZERO", 2, reg, -1 );
+		int backJump = instrCounter - 1;
+		addJump( backJump );
+
+	}THEN commands ELSE
+	{
+		int backJump = getJump();
+		editArgument( backJump, 2, instrCounter+1 );
+		
+		addCode( "JUMP", 1, -1 , 0 );
+		backJump = instrCounter - 1 ;
+		addJump( backJump );
+	} 
+	commands ENDIF
+	{
+		int backJump = getJump( );
+		editArgument( backJump, 1, instrCounter );
+	}
+
 	| WHILE condition DO commands ENDWHILE
 	| FOR ID FROM value TO value DO commands ENDFOR
 	| FOR ID FROM value DOWNTO value DO commands ENDFOR
@@ -601,7 +633,8 @@ condition :
 			addCode( "JZERO", 2, reg1, instrCounter+2 );
 			addCode( "JUMP", 1, instrCounter+2, 0 );
 			addCode( "JZERO", 2, reg2, instrCounter+3 );
-			addCode( "ZERO", 1, reg2, 0 );
+			addCode( "ZERO", 1, reg1, 0 );
+			addCode( "JUMP", 1, instrCounter+2, 0 );
 			addCode( "INC", 1, reg2, 0 );
 
 			$$._register = reg2;
@@ -907,6 +940,9 @@ void init(){
 	memoryIndex = 5;
 	instrCounter = 0;
 	fault = 0;
+
+	js.top = 0 ;
+
 	for( int i = 0 ; i < REGISTER_NUMBER ; ++i ){
 		registers[ i ] = 0;
 	}
@@ -1032,6 +1068,37 @@ int checkVar( char * name ){
 	}
 	return 1;
 
+}
+
+
+
+
+
+void addJump( int instrNumber ){
+	js.tab[ js.top ] = instrNumber;
+	js.top++;
+}
+
+
+
+
+
+int getJump(){
+
+	js.top--;
+	
+	int result = js.tab[ js.top ];
+
+	return result;
+
+}
+
+
+
+
+
+void editArgument( int codeNumber, int argNumber, int value ){
+	asmTab.tab[ codeNumber ]->args[ argNumber - 1 ] = value;
 }
 
 
