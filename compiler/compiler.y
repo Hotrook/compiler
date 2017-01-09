@@ -706,7 +706,7 @@ condition :
 				addCode( "COPY", 1, reg1, 0 );
 			}
 
-			addCode( "SUB", reg2, 0, 0 );
+			addCode( "SUB", 1, reg2, 0 );
 
 			registers[ reg1 ] = 0;
 			$$._register = reg2;
