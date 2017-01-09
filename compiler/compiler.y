@@ -259,6 +259,8 @@ command :
 
 			addJump( instrCounter-1 );
 
+			registers[ reg1 ] = 0;
+			registers[ reg2 ] = 0;
 		}
 
 	}
@@ -277,10 +279,72 @@ command :
 		addCode( "JUMP", 1, backJump, 0 );		
 	}
 	ENDFOR{
-		//@finish
-		void removeId();
+		removeId();
 	}
-	| FOR ID FROM value DOWNTO value DO commands ENDFOR
+	| FOR ID FROM value DOWNTO value
+	{
+		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
+		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
+
+		addId( $2.string, 1, 1 );
+
+		if( index1 != -1 && index2 != -1 ){
+			int index = getIdIndex( $2.string );
+
+			int reg1 = $4._register;
+			int reg2 = $6._register;
+
+			idTab.tab[ index ]->initialized = 1; 
+
+			if( $4.type == 2 ){
+				addCode( "COPY", 1, 0, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+			}
+
+			saveRegister( 0, idTab.tab[ index ]->mem );
+			addCode( "STORE", 1, reg1, 0 );
+
+			addJump( instrCounter );
+			if( $6.type == 1 ){
+				saveRegister( reg2, stringToNum( $6.string ) );
+			}
+			else{
+				saveRegister( 0, idTab.tab[ index2 ]->mem );
+				addCode( "LOAD", 1, reg2, 0 );
+			}
+
+			saveRegister( 0, idTab.tab[ index ]->mem );
+			addCode( "SUB", 1, reg2, 0 );
+			addCode( "JZERO", 2, reg2, instrCounter+2 );
+			addCode( "JUMP", 1, -1, 0 );
+			addJump( instrCounter-1 );
+
+			registers[ reg1 ] = 0;
+			registers[ reg2 ] = 0;
+
+		}
+	}
+	DO commands 
+	{
+		int index = getIdIndex( $2.string );
+		int reg = $4._register;
+
+		saveRegister( 0, idTab.tab[ index ]->mem );
+		addCode( "LOAD", 1, reg, 0 );
+		addCode( "JZERO", 2, reg, instrCounter + 4 );
+		addCode( "DEC", 1, reg, 0 );
+		addCode( "STORE", 1, reg, 0 );
+
+		int backJump = getJump( );
+		editArgument( backJump, 1, instrCounter + 1 );
+		backJump = getJump();
+		addCode( "JUMP", 1, backJump, 0 );
+
+	}
+	ENDFOR
+	{
+		removeId();
+	}
 	| READ identifier SEM
 	{
 		int reg = findRegister();
@@ -1174,6 +1238,16 @@ int getJump(){
 
 
 
+void removeId(){
+	idTab.index--;
+	free( idTab.tab[ idTab.index ]->name );
+	free( idTab.tab[ idTab.index] );
+}
+
+
+
+
+
 void editArgument( int codeNumber, int argNumber, int value ){
 	asmTab.tab[ codeNumber ]->args[ argNumber - 1 ] = value;
 }
@@ -1253,7 +1327,7 @@ void parse( int argc, char * argv[] ){
 		yyparse();
 		if( fault == 0 ){
 			for( int i = 0 ; i < asmTab.index ; ++i ){
-				//printf("%d: ", i );
+				printf("%d: ", i );
 				printInstruction( i );
 			}
 		}
