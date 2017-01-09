@@ -19,7 +19,7 @@
 	void freeRegisters( );
 	void addJump( int instrNumber );
 	void editArgument( int codeNumber, int argNumber, int value );
-
+	void removeId();
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
@@ -185,8 +185,10 @@ command :
 		addCode("JZERO", 2, reg, -1 );
 		int backJump = instrCounter - 1;
 		addJump( backJump );
+		registers[ reg ] = 0;
 
-	}THEN commands ELSE
+	}
+	THEN commands ELSE
 	{
 		int backJump = getJump();
 		editArgument( backJump, 2, instrCounter+1 );
@@ -200,9 +202,84 @@ command :
 		int backJump = getJump( );
 		editArgument( backJump, 1, instrCounter );
 	}
+	| WHILE 
+	{
+		addJump(instrCounter);
+	}
+	condition
+	{
+		int reg = $3._register;
+		addCode( "JZERO", 2, reg, -2 );
+		addJump( instrCounter - 1 );
+	} 
+	DO commands 
+	{
+		int backJump = getJump();
+		editArgument( backJump, 2, instrCounter+1 );
+		backJump = getJump();
+		addCode( "JUMP", 1, backJump, 0 );
+	}
+	ENDWHILE
+	| FOR ID FROM value TO value
+	{
+		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
+		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
 
-	| WHILE condition DO commands ENDWHILE
-	| FOR ID FROM value TO value DO commands ENDFOR
+		addId( $2.string, 1, 1 );
+
+		if( index1 != -1 && index2 != -1 ){
+			int index = getIdIndex( $2.string );
+
+			idTab.tab[ index ]->initialized = 1; 
+			int reg1 = $4._register;
+			int reg2 = $6._register;
+
+			if( $4.type == 2 ){
+				addCode( "COPY", 1, reg1, 0 );
+				addCode( "LOAD", 1, reg1, 0 );
+			}
+
+			saveRegister( 0, idTab.tab[ index ]->mem );
+
+			addJump( instrCounter );
+			addCode( "STORE", 1, reg1, 0 );
+			
+			if( $6.type == 1 ){
+				saveRegister( reg2, stringToNum( $6.string ) );
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg2, 0 );
+			}
+			else{
+				saveRegister( 0, idTab.tab[ index2 ]->mem );
+			}			
+
+			addCode( "SUB", 1, reg1, 0 );
+			addCode( "JZERO", 2, reg1, instrCounter+2 );
+			addCode( "JUMP", 1, -1, 0 );
+
+			addJump( instrCounter-1 );
+
+		}
+
+	}
+	DO commands
+	{	
+		int index = getIdIndex( $2.string );
+		int reg = $4._register;
+
+		saveRegister( 0, idTab.tab[ index ]->mem );
+		addCode( "LOAD", 1, reg, 0 );
+		addCode( "INC", 1, reg, 0 );
+
+		int backJump = getJump();
+		editArgument( backJump, 1, instrCounter+1 );
+		backJump = getJump();
+		addCode( "JUMP", 1, backJump, 0 );		
+	}
+	ENDFOR{
+		//@finish
+		void removeId();
+	}
 	| FOR ID FROM value DOWNTO value DO commands ENDFOR
 	| READ identifier SEM
 	{

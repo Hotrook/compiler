@@ -44,7 +44,7 @@ END  		{ return END;		}
 
 FOR  		{ return FOR;		}
 ENDFOR		{ return ENDFOR;	}
-DOWN 		{ return DO;		}
+DO  		{ return DO;		}
 TO  		{ return TO;		}
 DOWNOTO		{ return DOWNTO; 	}
 FROM		{ return FROM;		}
