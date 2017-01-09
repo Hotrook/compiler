@@ -209,6 +209,7 @@ command :
 	condition
 	{
 		int reg = $3._register;
+		registers[ reg ] = 0;
 		addCode( "JZERO", 2, reg, -2 );
 		addJump( instrCounter - 1 );
 	} 
@@ -488,17 +489,16 @@ expression :
 				addCode("LOAD", 1, regResult, 0 );
 			}
 			int jump;
-			addCode("JZERO", 2, regB, instrCounter+8 ); // @frost
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "JZERO", 2, regB, instrCounter+8 ); // @frost
 			int backJump = instrCounter-1;
-				jump = instrCounter + 2;
-			addCode("JODD", 2, regB, jump );
-				jump = instrCounter + 3;
-			addCode("JUMP", 1, jump, 0 );
-			addCode("STORE", 1, regResult, 0 );
-			addCode("ADD", 1, regHelp, 0 );
-			addCode("SHL", 1, regResult, 0 );
-			addCode("SHR", 1, regB, 0 );
-			addCode("JUMP", 1, backJump, 0 );
+			addCode( "JODD", 2, regB, instrCounter+2 );
+			addCode( "JUMP", 1, instrCounter+3, 0 );
+			addCode( "STORE", 1, regResult, 0 );
+			addCode( "ADD", 1, regHelp, 0 );
+			addCode( "SHL", 1, regResult, 0 );
+			addCode( "SHR", 1, regB, 0 );
+			addCode( "JUMP", 1, backJump, 0 );
 
 			$$._register = regHelp ;
 			registers[ regB ] = 0;
@@ -1327,7 +1327,7 @@ void parse( int argc, char * argv[] ){
 		yyparse();
 		if( fault == 0 ){
 			for( int i = 0 ; i < asmTab.index ; ++i ){
-				printf("%d: ", i );
+				//printf("%d: ", i );
 				printInstruction( i );
 			}
 		}
