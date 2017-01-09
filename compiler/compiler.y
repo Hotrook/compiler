@@ -14,7 +14,6 @@
 	void addId( char * name, int type, int size );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
-	void print( char * string );
 	void saveRegister( int _register, int num );
 	void freeRegisters( );
 	void addJump( int instrNumber );
@@ -1307,14 +1306,13 @@ int getIdIndex( char * id ){
 
 
 
-void printInstruction( int i ){
-	printf("%s", asmTab.tab[ i ]->instr );
+void printInstruction( int i, FILE * f){
+	fprintf( f, "%s", asmTab.tab[ i ]->instr );
 	for( int temp = 0 ; temp < asmTab.tab[ i ]->nrOfArg; ++temp ){
-		printf(" %d", asmTab.tab[ i ]->args[ temp ] );
+		fprintf(f, " %d", asmTab.tab[ i ]->args[ temp ] );
 	}
-	printf("\n");
+	fprintf(f,"\n");
 }
-
 
 
 
@@ -1326,9 +1324,16 @@ void parse( int argc, char * argv[] ){
 		init();
 		yyparse();
 		if( fault == 0 ){
-			for( int i = 0 ; i < asmTab.index ; ++i ){
-				//printf("%d: ", i );
-				printInstruction( i );
+		    FILE * f = fopen( argv[1], "w" );
+
+		    if( f != NULL ){
+				for( int i = 0 ; i < asmTab.index ; ++i ){
+					//printf("%d: ", i );
+					printInstruction( i, f );
+				}
+			}
+			else{
+				printf("Nie udało się otworzyć pliku\n");
 			}
 		}
 
