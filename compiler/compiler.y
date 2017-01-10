@@ -28,6 +28,7 @@
 	int getIdIndex( char * id );
 	int stringToNum( char * num );
 	int findRegister( );
+	int findOccupiedRegister( );
 	int getJump();
 	int yylex();
 
@@ -549,6 +550,16 @@ expression :
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
 			int reg3 = findRegister();
+			int reg4 = findOccupiedRegister();
+
+			if( reg4 != - 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "STORE", 1, reg4, 0 );
+			}
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -559,30 +570,22 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
-			addCode( "ZERO", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "SHL", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
 
-			addCode( "ZERO", 1, reg3, 0 );
-			addCode( "INC", 1, reg3, 0 );
-			addCode( "STORE", 1, reg3, 0 );
+			addCode( "ZERO", 1, reg4, 0 );
+			addCode( "INC", 1, reg4, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "STORE", 1, reg1, 0 );
 
-			addCode( "JUMP", 1, instrCounter+10, 0 ); 
+			addCode( "JUMP", 1, instrCounter+7, 0 ); 
 			
 			addCode( "JZERO", 2, reg3, instrCounter+2 ); 
 				int backJump = instrCounter - 1;
 
-				addCode( "JUMP", 1, instrCounter + 16 , 0 );
+				addCode( "JUMP", 1, instrCounter + 13 , 0 );
 				
 				addCode( "SHL", 1, reg2, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
-				addCode( "SHL", 1, reg3, 0 );
-				addCode( "STORE", 1, reg3, 0 );
+				addCode( "SHL", 1, reg4, 0 );
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "LOAD", 1, reg1, 0 );
@@ -606,9 +609,7 @@ expression :
 			addCode( "ZERO", 1, reg3, 0 );
 			addCode( "STORE", 1, reg3, 0 );
 
-			addCode( "JUMP", 1, instrCounter+27, 0 );
-
-			addCode( "JZERO", 2, reg3, instrCounter+32 );
+			addCode( "JZERO", 2, reg4, instrCounter+22 );
 				backJump = instrCounter - 1;
 
 				addCode( "ZERO", 1, 0, 0 );
@@ -620,7 +621,7 @@ expression :
 
 				addCode( "JZERO", 2, reg3, instrCounter+2 );
 				
-				addCode( "JUMP", 1, instrCounter+10, 0 );
+				addCode( "JUMP", 1, instrCounter+11, 0 );
 
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "SUB", 1, reg1, 0 );
@@ -629,28 +630,14 @@ expression :
 
 					addCode( "LOAD", 1, reg3, 0 );
 					addCode( "INC", 1, 0 , 0 );
+					addCode( "STORE", 1, reg4, 0 );
 					addCode( "ADD", 1, reg3, 0 );
 				
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "STORE", 1, reg3, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
-				
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
-
-				addCode( "SHR", 1, reg3, 0 );
-				addCode( "STORE", 1, reg3, 0 );
-
-
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
+				addCode( "SHR", 1, reg4, 0 );
 
 			addCode( "JUMP", 1, backJump, 0 );
 
@@ -658,6 +645,10 @@ expression :
 			addCode( "INC", 1, 0, 0 ); 
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg3, 0 );
+
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg4, 0 );
 
 			$$._register = reg3;
 			registers[ reg1 ] = 0;
@@ -679,6 +670,16 @@ expression :
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
 			int reg3 = findRegister();
+			int reg4 = findOccupiedRegister();
+
+			if( reg4 != - 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "INC", 1, 0, 0 );
+				addCode( "STORE", 1, reg4, 0 );
+			}
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -689,30 +690,22 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
-			addCode( "ZERO", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "SHL", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
 
-			addCode( "ZERO", 1, reg3, 0 );
-			addCode( "INC", 1, reg3, 0 );
-			addCode( "STORE", 1, reg3, 0 );
+			addCode( "ZERO", 1, reg4, 0 );
+			addCode( "INC", 1, reg4, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "STORE", 1, reg1, 0 );
 
-			addCode( "JUMP", 1, instrCounter+10, 0 ); 
+			addCode( "JUMP", 1, instrCounter+7, 0 ); 
 			
 			addCode( "JZERO", 2, reg3, instrCounter+2 ); 
 				int backJump = instrCounter - 1;
 
-				addCode( "JUMP", 1, instrCounter + 16 , 0 );
+				addCode( "JUMP", 1, instrCounter + 13 , 0 );
 				
 				addCode( "SHL", 1, reg2, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
-				addCode( "SHL", 1, reg3, 0 );
-				addCode( "STORE", 1, reg3, 0 );
+				addCode( "SHL", 1, reg4, 0 );
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "LOAD", 1, reg1, 0 );
@@ -731,10 +724,11 @@ expression :
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "ZERO", 1, reg3, 0 );
 
-			addCode( "JUMP", 1, instrCounter+20, 0 );
-
-			addCode( "JZERO", 2, reg3, instrCounter+25 );
+			addCode( "JZERO", 2, reg4, instrCounter+16 );
 				backJump = instrCounter - 1;
 
 				addCode( "ZERO", 1, 0, 0 );
@@ -746,29 +740,24 @@ expression :
 
 				addCode( "JZERO", 2, reg3, instrCounter+2 );
 				
-				addCode( "JUMP", 1, instrCounter+3, 0 );
+					addCode( "JUMP", 1, instrCounter+5, 0 );
 
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "SUB", 1, reg1, 0 );
+					addCode( "INC", 1, 0, 0 );
+					addCode( "INC", 1, 0, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
-				
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
-
-				addCode( "SHR", 1, reg3, 0 );
-				addCode( "STORE", 1, reg3, 0 );
-
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
+				addCode( "SHR", 1, reg4, 0 );
 
 			addCode( "JUMP", 1, backJump, 0 );
+
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg4, 0 );
 
 			$$._register = reg1;
 			registers[ reg3 ] = 0;
@@ -1227,8 +1216,19 @@ void print( char * string ){
 
 
 int findRegister( ){
-	for( int i = 4 ; i >= 0 ; --i ){
+	for( int i = 4 ; i >= 1 ; --i ){
 		if( registers[ i ] == 0 )
+			return i ;
+	}
+	return -1;
+}
+
+
+
+
+int findOccupiedRegister( ){
+	for( int i = 4 ; i >= 1 ; --i ){
+		if( registers[ i ] == 1 )
 			return i ;
 	}
 	return -1;
@@ -1423,7 +1423,7 @@ void parse( int argc, char * argv[] ){
 
 		    if( f != NULL ){
 				for( int i = 0 ; i < asmTab.index ; ++i ){
-					//printf("%d: ", i );
+					//fprintf(f, "%d: ", i );
 					printInstruction( i, f );
 				}
 			}
