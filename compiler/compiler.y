@@ -517,7 +517,7 @@ expression :
 				addCode("COPY", 1, regResult, 0 );
 				addCode("LOAD", 1, regResult, 0 );
 			}
-			int jump;
+
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "JZERO", 2, regB, instrCounter+8 ); // @frost
 			int backJump = instrCounter-1;
@@ -554,7 +554,6 @@ expression :
 
 			if( reg4 != - 1 ){
 				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
 				addCode( "INC", 1, 0, 0 );
 				addCode( "INC", 1, 0, 0 );
 				addCode( "INC", 1, 0, 0 );
@@ -625,15 +624,16 @@ expression :
 
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "SUB", 1, reg1, 0 );
+					
 					addCode( "INC", 1, 0, 0 );
 					addCode( "INC", 1, 0, 0 );
-
 					addCode( "LOAD", 1, reg3, 0 );
-					addCode( "INC", 1, 0 , 0 );
+
+					addCode( "DEC", 1, 0, 0 );
 					addCode( "STORE", 1, reg4, 0 );
 					addCode( "ADD", 1, reg3, 0 );
 				
-					addCode( "DEC", 1, 0, 0 );
+					addCode( "INC", 1, 0, 0 );
 					addCode( "STORE", 1, reg3, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
@@ -646,7 +646,6 @@ expression :
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg3, 0 );
 
-			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg4, 0 );
 
