@@ -179,7 +179,7 @@ command :
 				idTab.tab[ index ]->initialized = 1;
 			}
 			else{
-				printf("<line %d> ERROR: Próba zmiana zmiennej sterującej wewnątrz pętli: '%s'\n", yylineno, $1.string );
+				printf("<line %d> ERROR: Próba zmiany zmiennej sterującej wewnątrz pętli: '%s'\n", yylineno, $1.string );
 			}
 		}
 		else{
