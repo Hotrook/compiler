@@ -7,11 +7,14 @@
 	#define ASM_NUMBER 10000 
 	#define REGISTER_NUMBER 5
 	#define JUMP_NUMBER 1000000
+	#define INIT_ERROR( arg ) printf("<line %d> ERROR: Nie zainicjalizowano zmiennej: '%s'\n", yylineno, arg );
+	#define FAULT_USE_ERROR( arg ) printf("<line %d> ERROR: Niewłaściwe użycie zmiennej: '%s'\n", yylineno, arg );
+	#define DECL_ERROR(arg) printf("<line %d> ERROR: nie zadeklarowano zmiennej '%s'\n", yylineno, arg );
 
 	void printArrayTable();
 
 	void yyerror(const char *s);
-	void addId( char * name, int type, int size );
+	void addId( char * name, int type, int size, int temp );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
 	void saveRegister( int _register, int num );
@@ -19,6 +22,7 @@
 	void addJump( int instrNumber );
 	void editArgument( int codeNumber, int argNumber, int value );
 	void removeId();
+	void checkInit( int index );
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
@@ -33,6 +37,7 @@
 		int idType; // 1 - Number, 2 - array
 		int size;
 		int initialized;
+		int temp;
 	} identifier;
 
 	typedef struct{
@@ -142,7 +147,7 @@ vdeclarations:
 	vdeclarations ID
 	{
 		if( checkVar( $2.string ) ){
-			addId( $2.string, 1, 1 );
+			addId( $2.string, 1, 1, 1 );
 		}
 	}
 	| vdeclarations ID OPN NUM CLS
@@ -162,15 +167,19 @@ command :
 		int index = getIdIndex( $1.string );
 
 		if( index != - 1 ){
+			if( idTab.tab[ index ]->temp == 1 ){
 			
-			addCode("COPY", 1, $1._register, 0 );
-			addCode("STORE", 1, $3._register, 0 );
-			
-			registers[ $3._register ] = 0;
-			registers[ $1._register ] = 0; 
+				addCode("COPY", 1, $1._register, 0 );
+				addCode("STORE", 1, $3._register, 0 );
+				
+				registers[ $3._register ] = 0;
+				registers[ $1._register ] = 0; 
 
-			idTab.tab[ index ]->initialized = 1;
-
+				idTab.tab[ index ]->initialized = 1;
+			}
+			else{
+				printf("<line %d> ERROR: Próba zmiana zmiennej sterującej wewnątrz pętli: '%s'\n", yylineno, $1.string );
+			}
 		}
 		else{
 			freeRegisters();
@@ -225,7 +234,7 @@ command :
 		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
 		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
 
-		addId( $2.string, 1, 1 );
+		addId( $2.string, 1, 1, 0 );
 
 		if( index1 != -1 && index2 != -1 ){
 			int index = getIdIndex( $2.string );
@@ -286,7 +295,7 @@ command :
 		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
 		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
 
-		addId( $2.string, 1, 1 );
+		addId( $2.string, 1, 1, 0 );
 
 		if( index1 != -1 && index2 != -1 ){
 			int index = getIdIndex( $2.string );
@@ -390,7 +399,7 @@ command :
 
 				}
 				else{
-					printf("<line %d> ERROR: niezaicjalizowana zmienna: '%s'\n", yylineno, $2.string );
+					INIT_ERROR( $2.string );
 					fault = 1;
 				}
 			}
@@ -412,7 +421,11 @@ expression :
 			
 			int index = getIdIndex( $1.string );
 			int reg = $1._register;
-		
+			
+			if( idTab.tab[ index ]->idType == 1 && idTab.tab[ index ]->initialized == 0 ){
+				fault = 1;
+				printf("<line %d> ERROR: Nie zainicjalizowano zmiennej: '%s'\n", yylineno, $1.string );
+			}
 			addCode("COPY", 1, reg, 0 );
 			addCode("LOAD", 1, reg, 0 );
 		
@@ -425,6 +438,12 @@ expression :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
+
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			if( $1.type == 2 ){
 				addCode("COPY", 1, $1._register, 0 );
 				addCode("LOAD", 1, $1._register, 0 );
@@ -448,6 +467,11 @@ expression :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			if( $1.type == 2 ){
 				addCode("COPY", 1, $1._register, 0 );
 				addCode("LOAD", 1, $1._register, 0 );			
@@ -471,7 +495,12 @@ expression :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
-			
+	
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			int regB = $3._register;
 			int regResult = $1._register;
 			int regHelp = findRegister(); 
@@ -511,6 +540,11 @@ expression :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
+
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
 
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
@@ -637,6 +671,11 @@ expression :
 
 		if( index1 != -1 && index2 != -1 ){
 
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
 			int reg3 = findRegister();
@@ -745,6 +784,12 @@ condition :
 
 		if( index1 != -1 && index2 != -1 ){
 
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
+
 			int reg1 = $1._register;
 			int reg2 = $3._register;
 			int reg3 = findRegister();
@@ -790,6 +835,11 @@ condition :
 
 		if( index1 != -1 && index2 != -1 ){
 
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			int reg1 = $1._register;
 			int reg2 = $3._register;
 
@@ -831,6 +881,11 @@ condition :
 
 		if( index1 != -1 && index2 != -1 ){
 
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			int reg1 = $1._register;
 			int reg2 = $3._register;
 
@@ -860,6 +915,11 @@ condition :
 
 		if( index1 != -1 && index2 != -1 ){
 
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
+
 			int reg1 = $1._register;
 			int reg2 = $3._register;
 
@@ -887,6 +947,11 @@ condition :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
+
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
 
 			int reg1 = $1._register;
 			int reg2 = $3._register;
@@ -920,6 +985,11 @@ condition :
 		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
+
+			if( $1.type == 2 )
+				checkInit(index1);
+			if( $3.type == 2 )
+				checkInit(index2);
 
 			int reg1 = $1._register;
 			int reg2 = $3._register;
@@ -971,18 +1041,24 @@ identifier :
 		int index = getIdIndex( $1.string );
 
 		if( index == -1 ){
-			printf("<line %d> ERROR: nie zdefiniowano zmiennej '%s'\n", yylineno, $1.string );
+			DECL_ERROR( $1.string );
 			fault = 1;
 		}
 		else{
-			int reg = findRegister();
-			int mem = idTab.tab[ index ]->mem;
-			saveRegister( reg, mem );
+			if( idTab.tab[ index ]->idType == 1 ){
+				int reg = findRegister();
+				int mem = idTab.tab[ index ]->mem;
+				saveRegister( reg, mem );
 
-			$1._register = reg;
-			registers[ reg ] = 1;
+				$1._register = reg;
+				registers[ reg ] = 1;
 
-			$$ = $1;
+				$$ = $1;
+			}
+			else{
+				FAULT_USE_ERROR( $1.string );
+				fault = 1;
+			}
 		}
 
 	}
@@ -992,23 +1068,28 @@ identifier :
 		int index = getIdIndex( $1.string );
 		
 		if( index != -1 ){
-			if( $1.num < idTab.tab[ index ]->size ){
-				int reg = findRegister();
-				
-				saveRegister( reg, $1.num );
-				addCode("ZERO", 1, 0, 1 );
-				addCode("STORE", 1, reg, 1 );
-				saveRegister( reg, idTab.tab[ index ]->mem );
+			if( idTab.tab[ index ]->idType == 2 ){
+				if( $1.num < idTab.tab[ index ]->size ){
+					int reg = findRegister();
+					
+					saveRegister( reg, $1.num );
+					addCode("ZERO", 1, 0, 1 );
+					addCode("STORE", 1, reg, 1 );
+					saveRegister( reg, idTab.tab[ index ]->mem );
 
-				addCode("ADD", 1, reg, 0 );
+					addCode("ADD", 1, reg, 0 );
 
-				$1._register = reg;
-				$$ = $1;
+					$1._register = reg;
+					$$ = $1;
 
+				}
+				else{
+					printf("<line %d> ERROR: przekroczenie zakresu tablicy '%s'\n", yylineno, idTab.tab[ index ]->name );
+					fault = 1;
+				}
 			}
 			else{
-				printf("<line %d> ERROR: przekroczenie zakresu tablicy '%s'\n", yylineno, idTab.tab[ index ]->name );
-				fault = 1;
+				FAULT_USE_ERROR( $1.string );
 			}
 		}
 		else{
@@ -1025,9 +1106,9 @@ identifier :
 		if( index == -1 || index2 == -1 ){
 
 			if( index == -1 )
-				printf("<line %d> ERROR: nie zdefiniowano zmiennej; '%s'\n", yylineno, $3.string );	
+				DECL_ERROR( $3.string );	
 			if( index2 == -1 )
-				printf("<line %d> ERROR: nie zdefiniowano zmiennej; '%s'\n", yylineno, $1.string );
+				DECL_ERROR( $1.string );
 				
 			fault = 1;
 		}
@@ -1055,15 +1136,15 @@ identifier :
 
 				}
 				else{
-					printf("<line %d> ERROR: niezaicjalizowana zmienna '%s'\n", yylineno, $3.string );
+					INIT_ERROR( $3.string );
 					fault = 1;
 				}
 			}
 			else{
 				if( idTab.tab[ index ]->idType != 1 )
-					printf("<line %d> ERROR: podana zmienna, jest nazwą tablicy: '%s'\n", yylineno, $3.string );
+					FAULT_USE_ERROR( $3.string );
 				if( idTab.tab[ index2 ]->idType != 2 )
-					printf("<line %d> ERROR: podana zmienna, jest nazwą tablicy: '%s'\n", yylineno, $1.string );
+					FAULT_USE_ERROR( $1.string );
 				fault = 1;
 			}
 		}
@@ -1151,6 +1232,19 @@ int findRegister( ){
 			return i ;
 	}
 	return -1;
+}
+
+
+
+
+
+void checkInit( int index ){
+	if( idTab.tab[ index ]->idType == 1 ){
+		if( idTab.tab[ index ]->initialized == 0 ){
+			INIT_ERROR( idTab.tab[ index ]->name );
+			fault = 1;
+		}
+	}
 }
 
 
@@ -1255,7 +1349,7 @@ void editArgument( int codeNumber, int argNumber, int value ){
 
 
 
-void addId( char * name, int type, int size ){
+void addId( char * name, int type, int size, int temp ){
 	
 	identifier * id = ( identifier * )malloc( sizeof( identifier ) );
 	
@@ -1265,6 +1359,7 @@ void addId( char * name, int type, int size ){
 	id->mem = memoryIndex;
 	id->size = size;
 	id->initialized = 0;
+	id->temp = temp;
 
 
 	if( type == 1 ){
@@ -1283,7 +1378,7 @@ void addId( char * name, int type, int size ){
 void addArrayId( char * name, int type, char * num ){
 	
 	int number = stringToNum( num );
-	addId( name, type, number );
+	addId( name, type, number, 1 );
 	memoryIndex += number;
 
 }
@@ -1379,7 +1474,6 @@ int main( int argc, char * argv[] ){
 	return 0;
 
 }
-
 
 
 
