@@ -307,7 +307,7 @@ command :
 			idTab.tab[ index ]->initialized = 1; 
 
 			if( $4.type == 2 ){
-				addCode( "COPY", 1, 0, 0 );
+				addCode( "COPY", 1, reg1, 0 );
 				addCode( "LOAD", 1, reg1, 0 );
 			}
 
