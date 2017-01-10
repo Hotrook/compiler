@@ -230,39 +230,45 @@ command :
 		addCode( "JUMP", 1, backJump, 0 );
 	}
 	ENDWHILE
-	| FOR ID FROM value TO value
+	| FOR ID FROM value
 	{
 		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
-		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
-
 		addId( $2.string, 1, 1, 0 );
 
-		if( index1 != -1 && index2 != -1 ){
+		if( index1 != -1 ){
 			int index = getIdIndex( $2.string );
 
-			idTab.tab[ index ]->initialized = 1; 
-			int reg1 = $4._register;
-			int reg2 = $6._register;
+			idTab.tab[ index ]->initialized = 1;
+
+			int reg = $4._register;
 
 			if( $4.type == 2 ){
-				addCode( "COPY", 1, reg1, 0 );
-				addCode( "LOAD", 1, reg1, 0 );
+				addCode( "COPY", 1, reg, 0 );
+				addCode( "LOAD", 1, reg, 0 );
 			}
 
 			saveRegister( 0, idTab.tab[ index ]->mem );
 
 			addJump( instrCounter );
-			addCode( "STORE", 1, reg1, 0 );
-			
-			if( $6.type == 1 ){
-				saveRegister( reg2, stringToNum( $6.string ) );
+			addCode( "STORE", 1, reg, 0 );
+		}
+	} 
+	TO value
+	{
+		int index2 = $7.type == 2 ? getIdIndex( $7.string ) : 1;
+
+		if( index2 != -1 ){
+			int reg1 = $4._register;
+			int reg2 = $7._register;
+
+			if( $7.type == 1 ){
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "STORE", 1, reg2, 0 );
 			}
 			else{
-				saveRegister( 0, idTab.tab[ index2 ]->mem );
-			}			
-
+				addCode( "COPY", 1, reg2, 0 );
+ 			}
+			
 			addCode( "SUB", 1, reg1, 0 );
 			addCode( "JZERO", 2, reg1, instrCounter+2 );
 			addCode( "JUMP", 1, -1, 0 );
@@ -272,7 +278,6 @@ command :
 			registers[ reg1 ] = 0;
 			registers[ reg2 ] = 0;
 		}
-
 	}
 	DO commands
 	{	
