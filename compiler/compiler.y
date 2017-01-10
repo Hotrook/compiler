@@ -521,12 +521,12 @@ expression :
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "JZERO", 2, regB, instrCounter+8 ); // @frost
 			int backJump = instrCounter-1;
-			addCode( "JODD", 2, regB, instrCounter+2 );
-			addCode( "JUMP", 1, instrCounter+3, 0 );
-			addCode( "STORE", 1, regResult, 0 );
-			addCode( "ADD", 1, regHelp, 0 );
-			addCode( "SHL", 1, regResult, 0 );
-			addCode( "SHR", 1, regB, 0 );
+				addCode( "JODD", 2, regB, instrCounter+2 );
+				addCode( "JUMP", 1, instrCounter+3, 0 );
+				addCode( "STORE", 1, regResult, 0 );
+				addCode( "ADD", 1, regHelp, 0 );
+				addCode( "SHL", 1, regResult, 0 );
+				addCode( "SHR", 1, regB, 0 );
 			addCode( "JUMP", 1, backJump, 0 );
 
 			$$._register = regHelp ;
@@ -677,7 +677,6 @@ expression :
 				addCode( "INC", 1, 0, 0 );
 				addCode( "INC", 1, 0, 0 );
 				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
 				addCode( "STORE", 1, reg4, 0 );
 			}
 
@@ -724,11 +723,8 @@ expression :
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "ZERO", 1, reg3, 0 );
 
-			addCode( "JZERO", 2, reg4, instrCounter+16 );
+			addCode( "JZERO", 2, reg4, instrCounter+14 );
 				backJump = instrCounter - 1;
 
 				addCode( "ZERO", 1, 0, 0 );
@@ -740,12 +736,10 @@ expression :
 
 				addCode( "JZERO", 2, reg3, instrCounter+2 );
 				
-					addCode( "JUMP", 1, instrCounter+5, 0 );
+					addCode( "JUMP", 1, instrCounter+3, 0 );
 
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "SUB", 1, reg1, 0 );
-					addCode( "INC", 1, 0, 0 );
-					addCode( "INC", 1, 0, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
 				addCode( "SHR", 1, reg4, 0 );
@@ -753,7 +747,6 @@ expression :
 			addCode( "JUMP", 1, backJump, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
