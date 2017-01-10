@@ -799,7 +799,7 @@ condition :
 			addCode( "JZERO", 2, reg1, instrCounter+2 );
 			addCode( "JUMP", 1, instrCounter+2, 0 );
 			addCode( "JZERO", 2, reg2, instrCounter+3 );
-			addCode( "ZERO", 1, reg1, 0 );
+			addCode( "ZERO", 1, reg2, 0 );
 			addCode( "JUMP", 1, instrCounter+2, 0 );
 			addCode( "INC", 1, reg2, 0 );
 
