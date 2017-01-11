@@ -14,10 +14,10 @@
 	void printArrayTable();
 
 	void yyerror(const char *s);
-	void addId( char * name, int type, int size, int temp );
+	void addId( char * name, int type, long long size, int temp );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
-	void saveRegister( int _register, int num );
+	void saveRegister( int _register, long long num );
 	void freeRegisters( );
 	void addJump( int instrNumber );
 	void editArgument( int codeNumber, int argNumber, int value );
@@ -26,7 +26,7 @@
 
 	int checkVar( char * name );
 	int getIdIndex( char * id );
-	int stringToNum( char * num );
+	long long stringToNum( char * num );
 	int findRegister( );
 	int findOccupiedRegister( );
 	int getJump();
@@ -36,7 +36,7 @@
 		char * name;
 		int mem;
 		int idType; // 1 - Number, 2 - array
-		int size;
+		long long size;
 		int initialized;
 		int temp;
 	} identifier;
@@ -78,7 +78,7 @@
 %union{
 	struct{
 		char * string;
-		int num;
+		long long num;
 		int type; // 1 - number ( literal ), 2 - variable
 		int _register;
 	}  data;
@@ -1021,7 +1021,7 @@ value :
 		$1.type = 1;
 		$1._register = findRegister();
 		$$ = $1;
-		int temp = stringToNum( $1.string );
+		long long temp = stringToNum( $1.string );
 		saveRegister( $1._register, temp );
 	}
 	| identifier
@@ -1258,7 +1258,7 @@ void checkInit( int index ){
 
 
 
-void saveRegister( int _register, int num ){
+void saveRegister( int _register, long long num ){
 	
 	registers[ _register ] = 1;
 	int counter = 0;
@@ -1285,8 +1285,8 @@ void saveRegister( int _register, int num ){
 
 
 
-int stringToNum( char * num ){
-	return atoi( num );
+long long stringToNum( char * num ){
+	return atoll( num );
 }
 
 
@@ -1356,7 +1356,7 @@ void editArgument( int codeNumber, int argNumber, int value ){
 
 
 
-void addId( char * name, int type, int size, int temp ){
+void addId( char * name, int type, long long size, int temp ){
 	
 	identifier * id = ( identifier * )malloc( sizeof( identifier ) );
 	
@@ -1384,7 +1384,7 @@ void addId( char * name, int type, int size, int temp ){
 
 void addArrayId( char * name, int type, char * num ){
 	
-	int number = stringToNum( num );
+	long long number = stringToNum( num );
 	addId( name, type, number, 1 );
 	memoryIndex += number;
 
