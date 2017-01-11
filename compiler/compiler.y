@@ -315,8 +315,6 @@ command :
 
 			saveRegister( 0, idTab.tab[ index ]->mem );
 			addCode( "STORE", 1, reg, 0 );
-			addCode( "ZERO", 1, 0, 0 );
-			addCode( "STORE", 1, reg, 0 );
 
 			addJump( instrCounter );
 		}
@@ -337,6 +335,8 @@ command :
 			}
 
 			addCode( "ZERO", 1, 0, 0 );
+			addCode( "STORE", 1, reg1, 0 );
+
 			addCode( "SUB", 1, reg2, 0 );
 			addCode( "JZERO", 2, reg2, instrCounter+2 );
 			addCode( "JUMP", 1, -1, 0 );
