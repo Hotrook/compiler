@@ -686,15 +686,6 @@ expression :
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
 			int reg3 = findRegister();
-			int reg4 = findOccupiedRegister();
-
-			if( reg4 != - 1 ){
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "STORE", 1, reg4, 0 );
-			}
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -706,8 +697,8 @@ expression :
 			}
 
 
-			addCode( "ZERO", 1, reg4, 0 );
-			addCode( "INC", 1, reg4, 0 );
+			addCode( "ZERO", 1, reg3, 0 );
+			addCode( "INC", 1, reg3, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "STORE", 1, reg1, 0 );
@@ -718,15 +709,15 @@ expression :
 			
 			addCode( "JZERO", 2, reg1, instrCounter + 2 );
 			addCode( "JUMP", 1, instrCounter+5, 0 ); 
-			addCode( "DEC", 1, 0, 0 ); //finish
+			addCode( "DEC", 1, 0, 0 ); 
 			addCode( "LOAD", 1, reg1, 0 );
-			addCode( "JUMP", 1, instrCounter+29, 0 );
+			addCode( "JUMP", 1, instrCounter+30, 0 );
 
 			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
 				int backJump = instrCounter - 1;
 
 				addCode( "SHL", 1, reg2, 0 );
-				addCode( "SHL", 1, reg4, 0 );
+				addCode( "SHL", 1, reg3, 0 );
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "LOAD", 1, reg1, 0 );
@@ -739,38 +730,34 @@ expression :
 			addCode( "JUMP", 1, backJump, 0 ); 
 
 			addCode( "SHR", 1, reg2, 0 );
-			addCode( "SHR", 1, reg4, 0 );
+			addCode( "SHR", 1, reg3, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
 
-			addCode( "JZERO", 2, reg4, instrCounter+14 );
+			addCode( "JZERO", 2, reg3, instrCounter+16 );
 				backJump = instrCounter - 1;
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "STORE", 1, reg2, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
 				addCode( "INC", 1, 0, 0 );
 				addCode( "STORE", 1, reg1, 0 );
-				addCode( "SUB", 1, reg3, 0 );
+				addCode( "SUB", 1, reg2, 0 );
 
-				addCode( "JZERO", 2, reg3, instrCounter+2 );
+				addCode( "JZERO", 2, reg2, instrCounter+4 );
 				
-					addCode( "JUMP", 1, instrCounter+3, 0 );
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "LOAD", 1, reg2, 0 );
+					addCode( "JUMP", 1, instrCounter+4, 0 );
 
 					addCode( "DEC", 1, 0, 0 );
+					addCode( "LOAD", 1, reg2, 0 );
 					addCode( "SUB", 1, reg1, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
-				addCode( "SHR", 1, reg4, 0 );
+				addCode( "SHR", 1, reg3, 0 );
 
 			addCode( "JUMP", 1, backJump, 0 );
-
-			addCode( "ZERO", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "LOAD", 1, reg4, 0 );
 
 			$$._register = reg1;
 			registers[ reg3 ] = 0;
