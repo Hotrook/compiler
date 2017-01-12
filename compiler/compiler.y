@@ -534,7 +534,7 @@ expression :
 			}
 
 			addCode( "ZERO", 1, 0, 0 );
-			addCode( "JZERO", 2, regB, instrCounter+8 ); // @frost
+			addCode( "JZERO", 2, regB, instrCounter+8 ); 
 			int backJump = instrCounter-1;
 				addCode( "JODD", 2, regB, instrCounter+2 );
 				addCode( "JUMP", 1, instrCounter+3, 0 );

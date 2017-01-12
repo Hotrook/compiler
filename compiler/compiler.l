@@ -68,6 +68,6 @@ READ		{ return READ;		}
 [_a-z]+		{ yylval.data.string = ( char * ) strdup( yytext ); return ID; 	}
 
 
-.			;
+.			{ printf("<line %d> Niepoprawny znak: %s\n", yylineno, yytext );}
 
 %%
