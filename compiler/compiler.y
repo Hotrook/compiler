@@ -575,6 +575,15 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
+			if( $3.type == 1 && stringToNum($3.string ) == 2){
+				long long num = stringToNum( $3.string );
+				addCode( "SHR", 1, reg1, 0 );
+
+				$$._register = reg1;
+				registers[ reg2 ] = 0;
+				registers[ reg4 ] = 0; 
+			}
+			else{
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
@@ -591,7 +600,7 @@ expression :
 			addCode( "DEC", 1, 0, 0 );
 			addCode( "SUB", 1, reg2, 0 );
 			addCode( "JZERO", 2, reg2, instrCounter + 2 );
-			addCode( "JUMP", 1, instrCounter+42, 0 );
+			addCode( "JUMP", 1, instrCounter+50, 0 );
 
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg2, 0 );
@@ -613,8 +622,20 @@ expression :
 
 				addCode( "JUMP", 1, backJump, 0 ); 
 
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "SUB", 1, reg2, 0 );
+			addCode( "JZERO", 2, reg2, instrCounter+6 );
+
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg2, 0 );
+			
 			addCode( "SHR", 1, reg2, 0 );
 			addCode( "SHR", 1, reg4, 0 );
+
+			addCode( "JUMP", 1, instrCounter+3, 0 );
+
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg2, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
@@ -660,12 +681,11 @@ expression :
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg2, 0 );
 
-			addCode( "INC", 1, 0, 0 );
-			addCode( "LOAD", 1, reg4, 0 );
 
 			$$._register = reg2;
 			registers[ reg1 ] = 0;
 			registers[ reg4 ] = 0; 
+			}
 		}
 	}
 	| value MOD value
@@ -702,13 +722,14 @@ expression :
 
 			addCode( "INC", 1, 0, 0 );
 			addCode( "STORE", 1, reg2, 0 );
-			addCode( "SUB", 1, reg1, 0 );
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "SUB", 1, reg2, 0 );
 			
-			addCode( "JZERO", 2, reg1, instrCounter + 2 );
-			addCode( "JUMP", 1, instrCounter+5, 0 ); 
-			addCode( "DEC", 1, 0, 0 ); 
-			addCode( "LOAD", 1, reg1, 0 );
-			addCode( "JUMP", 1, instrCounter+30, 0 );
+			addCode( "JZERO", 2, reg2, instrCounter + 2 );
+			addCode( "JUMP", 1, instrCounter+36, 0 ); 
+			addCode( "INC", 1, 0, 0 ); 
+			addCode( "LOAD", 1, reg2, 0 );
+			addCode( "JUMP", 1, instrCounter+2, 0 );
 
 			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
 				int backJump = instrCounter - 1;
@@ -726,6 +747,12 @@ expression :
 
 			addCode( "JUMP", 1, backJump, 0 ); 
 
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "SUB", 1, reg2, 0 );
+			addCode( "JZERO", 2, reg2, instrCounter + 23 );
+
+			addCode( "INC", 1, 0, 0 );
+			addCode( "LOAD", 1, reg2, 0 );
 			addCode( "SHR", 1, reg2, 0 );
 			addCode( "SHR", 1, reg3, 0 );
 
