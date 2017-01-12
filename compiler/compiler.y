@@ -64,7 +64,7 @@
 
 
 	int yylineno;
-	int memoryIndex;
+	long long memoryIndex;
 	int fault;
 	int registers[ 5 ];
 	int instrCounter;
@@ -564,16 +564,7 @@ expression :
 
 			int reg1 = $1._register;
 			int reg2 = $3._register; 
-			int reg3 = findRegister();
-			int reg4 = findOccupiedRegister();
-
-			if( reg4 != - 1 ){
-				addCode( "ZERO", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "STORE", 1, reg4, 0 );
-			}
+			int reg4 = findRegister();
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -584,9 +575,12 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
-			addCode( "ZERO", 1, reg3, 0 );
+			addCode( "ZERO", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "INC", 1, 0, 0 );
 
 			addCode( "ZERO", 1, reg4, 0 );
+			addCode( "STORE", 1, reg4, 0 );
 			addCode( "INC", 1, reg4, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
@@ -594,11 +588,14 @@ expression :
 
 			addCode( "INC", 1, 0, 0 );
 			addCode( "STORE", 1, reg2, 0 );
-			addCode( "SUB", 1, reg1, 0 );
-			addCode( "JZERO", 2, reg1, instrCounter + 2 );
-			addCode( "JUMP", 1, instrCounter+4, 0 );
+			addCode( "DEC", 1, 0, 0 );
+			addCode( "SUB", 1, reg2, 0 );
+			addCode( "JZERO", 2, reg2, instrCounter + 2 );
+			addCode( "JUMP", 1, instrCounter+42, 0 );
+
 			addCode( "INC", 1, 0, 0 );
-			addCode( "JUMP", 1, instrCounter+40, 0 );
+			addCode( "LOAD", 1, reg2, 0 );
+			addCode( "JUMP", 1, instrCounter+2, 0 );
 
 			
 			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
@@ -621,37 +618,37 @@ expression :
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "INC", 1, 0, 0 );
-			addCode( "STORE", 1, reg3, 0 );
 
-			addCode( "JZERO", 2, reg4, instrCounter+22 );
+			addCode( "JZERO", 2, reg4, instrCounter+25 );
 				backJump = instrCounter - 1;
 
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "STORE", 1, reg2, 0 );
-				addCode( "LOAD", 1, reg3, 0 );
 				addCode( "INC", 1, 0, 0 );
 				addCode( "STORE", 1, reg1, 0 );
-				addCode( "SUB", 1, reg3, 0 );
+				addCode( "SUB", 1, reg2, 0 );
 
-				addCode( "JZERO", 2, reg3, instrCounter+2 );
-				
-				addCode( "JUMP", 1, instrCounter+11, 0 );
+				addCode( "JZERO", 2, reg2, instrCounter+4 );
+					addCode( "ZERO", 1, 0, 0 );
+					addCode( "LOAD", 1, reg2, 0 );
+				addCode( "JUMP", 1, instrCounter+13, 0 );
 
 					addCode( "DEC", 1, 0, 0 );
 					addCode( "SUB", 1, reg1, 0 );
 					
 					addCode( "INC", 1, 0, 0 );
 					addCode( "INC", 1, 0, 0 );
-					addCode( "LOAD", 1, reg3, 0 );
+					addCode( "LOAD", 1, reg2, 0 );
 
-					addCode( "DEC", 1, 0, 0 );
-					addCode( "STORE", 1, reg4, 0 );
-					addCode( "ADD", 1, reg3, 0 );
-				
 					addCode( "INC", 1, 0, 0 );
-					addCode( "STORE", 1, reg3, 0 );
+					addCode( "STORE", 1, reg4, 0 );
+					addCode( "ADD", 1, reg2, 0 );
+				
+					addCode( "DEC", 1, 0, 0 );
+					addCode( "STORE", 1, reg2, 0 );
+
+					addCode( "ZERO", 1, 0, 0 );
+					addCode( "LOAD", 1, reg2, 0 );
 
 				addCode( "SHR", 1, reg2, 0 );
 				addCode( "SHR", 1, reg4, 0 );
@@ -661,14 +658,14 @@ expression :
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 ); 
 			addCode( "INC", 1, 0, 0 );
-			addCode( "LOAD", 1, reg3, 0 );
+			addCode( "LOAD", 1, reg2, 0 );
 
 			addCode( "INC", 1, 0, 0 );
 			addCode( "LOAD", 1, reg4, 0 );
 
-			$$._register = reg3;
+			$$._register = reg2;
 			registers[ reg1 ] = 0;
-			registers[ reg2 ] = 0; 
+			registers[ reg4 ] = 0; 
 		}
 	}
 	| value MOD value
