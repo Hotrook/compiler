@@ -584,6 +584,7 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
+			addCode( "ZERO", 1, reg3, 0 );
 
 			addCode( "ZERO", 1, reg4, 0 );
 			addCode( "INC", 1, reg4, 0 );
@@ -591,13 +592,17 @@ expression :
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "STORE", 1, reg1, 0 );
 
-			addCode( "JUMP", 1, instrCounter+7, 0 ); 
-			
-			addCode( "JZERO", 2, reg3, instrCounter+2 ); 
-				int backJump = instrCounter - 1;
+			addCode( "INC", 1, 0, 0 );
+			addCode( "STORE", 1, reg2, 0 );
+			addCode( "SUB", 1, reg1, 0 );
+			addCode( "JZERO", 2, reg1, instrCounter + 2 );
+			addCode( "JUMP", 1, instrCounter+4, 0 );
+			addCode( "INC", 1, 0, 0 );
+			addCode( "JUMP", 1, instrCounter+40, 0 );
 
-				addCode( "JUMP", 1, instrCounter + 13 , 0 );
-				
+			
+			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
+				int backJump = instrCounter - 1;
 				addCode( "SHL", 1, reg2, 0 );
 				addCode( "SHL", 1, reg4, 0 );
 
@@ -609,18 +614,15 @@ expression :
 
 				addCode( "SUB", 1, reg1, 0 );
 
-				addCode( "LOAD", 1, reg3, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "STORE", 1, reg1, 0 );
-				addCode( "SUB", 1, reg3, 0 );
+				addCode( "JUMP", 1, backJump, 0 ); 
 
-			addCode( "JUMP", 1, backJump, 0 ); 
+			addCode( "SHR", 1, reg2, 0 );
+			addCode( "SHR", 1, reg4, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
 			addCode( "INC", 1, 0, 0 );
 			addCode( "INC", 1, 0, 0 );
-			addCode( "ZERO", 1, reg3, 0 );
 			addCode( "STORE", 1, reg3, 0 );
 
 			addCode( "JZERO", 2, reg4, instrCounter+22 );
@@ -710,13 +712,19 @@ expression :
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "STORE", 1, reg1, 0 );
 
-			addCode( "JUMP", 1, instrCounter+7, 0 ); 
+			addCode( "INC", 1, 0, 0 );
+			addCode( "STORE", 1, reg2, 0 );
+			addCode( "SUB", 1, reg1, 0 );
 			
-			addCode( "JZERO", 2, reg3, instrCounter+2 ); 
+			addCode( "JZERO", 2, reg1, instrCounter + 2 );
+			addCode( "JUMP", 1, instrCounter+5, 0 ); 
+			addCode( "DEC", 1, 0, 0 ); //finish
+			addCode( "LOAD", 1, reg1, 0 );
+			addCode( "JUMP", 1, instrCounter+29, 0 );
+
+			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
 				int backJump = instrCounter - 1;
 
-				addCode( "JUMP", 1, instrCounter + 13 , 0 );
-				
 				addCode( "SHL", 1, reg2, 0 );
 				addCode( "SHL", 1, reg4, 0 );
 
@@ -728,12 +736,10 @@ expression :
 
 				addCode( "SUB", 1, reg1, 0 );
 
-				addCode( "LOAD", 1, reg3, 0 );
-				addCode( "INC", 1, 0, 0 );
-				addCode( "STORE", 1, reg1, 0 );
-				addCode( "SUB", 1, reg3, 0 );
-
 			addCode( "JUMP", 1, backJump, 0 ); 
+
+			addCode( "SHR", 1, reg2, 0 );
+			addCode( "SHR", 1, reg4, 0 );
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "LOAD", 1, reg1, 0 );
