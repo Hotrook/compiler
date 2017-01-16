@@ -2,7 +2,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
-
+ 
 	#define ID_NUMBER 10000 
 	#define ASM_NUMBER 10000 
 	#define REGISTER_NUMBER 5
@@ -14,7 +14,7 @@
 	void printArrayTable();
 
 	void yyerror(const char *s);
-	void addId( char * name, int type, long long size, int temp );
+	void addId( char * name, int type, long long size, int glob );
 	void addArrayId( char * name, int type, char * num );
 	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
 	void saveRegister( int _register, long long num );
@@ -38,7 +38,7 @@
 		int idType; // 1 - Number, 2 - array
 		long long size;
 		int initialized;
-		int temp;
+		int glob;
 	} identifier;
 
 	typedef struct{
@@ -168,7 +168,7 @@ command :
 		int index = getIdIndex( $1.string );
 
 		if( index != - 1 ){
-			if( idTab.tab[ index ]->temp == 1 ){
+			if( idTab.tab[ index ]->glob == 1 ){
 			
 				addCode("COPY", 1, $1._register, 0 );
 				addCode("STORE", 1, $3._register, 0 );
@@ -230,68 +230,89 @@ command :
 		addCode( "JUMP", 1, backJump, 0 );
 	}
 	ENDWHILE
-	| FOR ID FROM value
+	| FOR ID FROM value TO value
 	{
 		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
+		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
+
 		addId( $2.string, 1, 1, 0 );
+		int index = getIdIndex( $2.string );
+		idTab.tab[ index ]->initialized = 1;
 
-		if( index1 != -1 ){
-			int index = getIdIndex( $2.string );
-
-			idTab.tab[ index ]->initialized = 1;
-
-			int reg = $4._register;
-
-			if( $4.type == 2 ){
-				addCode( "COPY", 1, reg, 0 );
-				addCode( "LOAD", 1, reg, 0 );
-			}
-
-			saveRegister( 0, idTab.tab[ index ]->mem );
-
-			addJump( instrCounter );
-			addCode( "STORE", 1, reg, 0 );
-		}
-	} 
-	TO value
-	{
-		int index2 = $7.type == 2 ? getIdIndex( $7.string ) : 1;
-
-		if( index2 != -1 ){
+		if( index1 != -1 && index2 != -1 ){
 			int reg1 = $4._register;
-			int reg2 = $7._register;
+			int reg2 = $6._register;
+			int reg3 = findRegister();
 
-			if( $7.type == 1 ){
+			if( $4.type == 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg1, 0 );
+			}
+			else{
+				addCode( "COPY", 1, reg1, 0 );
+			}
+			addCode( "LOAD", 1, reg3, 0 );
+
+			if( $6.type == 1 ){
 				addCode( "ZERO", 1, 0, 0 );
 				addCode( "STORE", 1, reg2, 0 );
 			}
 			else{
 				addCode( "COPY", 1, reg2, 0 );
- 			}
-			
-			addCode( "SUB", 1, reg1, 0 );
-			addCode( "JZERO", 2, reg1, instrCounter+2 );
-			addCode( "JUMP", 1, -1, 0 );
+			}
 
+			addCode( "SUB", 1, reg3, 0 );
+
+			addCode( "JZERO", 2, reg3, instrCounter+2 );
+			addCode( "JUMP" , 1, -1, 0 );
+				addJump( instrCounter - 1 );
+
+			if( $6.type == 2 ){
+				addCode( "LOAD", 1, reg2, 0 );
+			}
+			if( $4.type == 1 ){
+				addCode( "ZERO", 1, 0, 0 );
+				addCode( "STORE", 1, reg1, 0 );
+			}
+			else{
+				addCode( "COPY", 1, reg1, 0 );
+			}
+
+			addCode( "SUB", 1, reg2, 0 );
+			addCode( "INC", 1, reg2, 0 );
+
+			addCode( "LOAD", 1, reg1, 0 );
+			saveRegister( 0 , idTab.tab[ index ]->mem );
+			addCode( "STORE", 1, reg1, 0 );
+			addCode( "INC", 1, 0, 0 );
+
+			addCode( "JZERO", 2, reg2, -1 );
 			addJump( instrCounter-1 );
-
+			addCode( "STORE", 1, reg2, 0 );
 			registers[ reg1 ] = 0;
 			registers[ reg2 ] = 0;
+			registers[ reg3 ] = 0;
 		}
 	}
 	DO commands
 	{	
 		int index = getIdIndex( $2.string );
-		int reg = $4._register;
+		int reg1 = $4._register;
+		int reg2 = $6._register;
 
 		saveRegister( 0, idTab.tab[ index ]->mem );
-		addCode( "LOAD", 1, reg, 0 );
-		addCode( "INC", 1, reg, 0 );
+		addCode( "LOAD", 1, reg1, 0 );
+		addCode( "INC", 1, reg1, 0 );
+		addCode( "STORE", 1, reg1, 0 );
+		addCode( "INC", 1, 0, 0 );
+		addCode( "LOAD", 1, reg2, 0 );
+		addCode( "DEC", 1, reg2, 0 );
 
 		int backJump = getJump();
-		editArgument( backJump, 1, instrCounter+1 );
-		backJump = getJump();
+		editArgument( backJump, 2, instrCounter+1 );
 		addCode( "JUMP", 1, backJump, 0 );	
+		backJump = getJump();
+		editArgument( backJump, 1, instrCounter );
 	}
 	ENDFOR{
 		removeId();
@@ -1357,6 +1378,7 @@ int getJump(){
 
 void removeId(){
 	idTab.index--;
+	memoryIndex -= 2;
 	free( idTab.tab[ idTab.index ]->name );
 	free( idTab.tab[ idTab.index] );
 }
@@ -1373,7 +1395,7 @@ void editArgument( int codeNumber, int argNumber, int value ){
 
 
 
-void addId( char * name, int type, long long size, int temp ){
+void addId( char * name, int type, long long size, int glob ){
 	
 	identifier * id = ( identifier * )malloc( sizeof( identifier ) );
 	
@@ -1383,11 +1405,14 @@ void addId( char * name, int type, long long size, int temp ){
 	id->mem = memoryIndex;
 	id->size = size;
 	id->initialized = 0;
-	id->temp = temp;
+	id->glob = glob;
 
 
 	if( type == 1 ){
-		memoryIndex++;
+		if( glob == 0 )
+			memoryIndex += 2;
+		else
+			memoryIndex++;
 	}
 	
 	idTab.tab[ idTab.index ] = id;
