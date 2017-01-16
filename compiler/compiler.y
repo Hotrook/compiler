@@ -14,60 +14,60 @@
 	void printArrayTable();
 
 	void yyerror(const char *s);
-	void addId( char * name, int type, long long size, int glob );
-	void addArrayId( char * name, int type, char * num );
-	void addCode( char * name, int nrOfArg, int firstArg, int secArg );
-	void saveRegister( int _register, long long num );
+	void addId( char * name, long long type, long long size, long long glob );
+	void addArrayId( char * name, long long type, char * num );
+	void addCode( char * name, long long nrOfArg, long long firstArg, long long secArg );
+	void saveRegister( long long _register, long long num );
 	void freeRegisters( );
-	void addJump( int instrNumber );
-	void editArgument( int codeNumber, int argNumber, int value );
+	void addJump( long long instrNumber );
+	void editArgument( long long codeNumber, long long argNumber, long long value );
 	void removeId();
-	void checkInit( int index );
+	void checkInit( long long index );
 
-	int checkVar( char * name );
-	int getIdIndex( char * id );
+	long long checkVar( char * name );
+	long long getIdIndex( char * id );
 	long long stringToNum( char * num );
-	int findRegister( );
-	int findOccupiedRegister( );
-	int getJump();
-	int yylex();
+	long long findRegister( );
+	long long findOccupiedRegister( );
+	long long getJump();
+	long long yylex();
 
 	typedef struct{
 		char * name;
-		int mem;
-		int idType; // 1 - Number, 2 - array
+		long long mem;
+		long long idType; // 1 - Number, 2 - array
 		long long size;
-		int initialized;
-		int glob;
+		long long initialized;
+		long long glob;
 	} identifier;
 
 	typedef struct{
 		identifier * tab[ ID_NUMBER ];
-		int index;
+		long long index;
 	} identifiersTable;
 
 	typedef struct{
 		char* instr;
-		int nrOfArg;
-		int args[ 2 ];
+		long long nrOfArg;
+		long long args[ 2 ];
 	} instruction;
 
 	typedef struct{ 
 		instruction* tab[ ASM_NUMBER ];
-		int index; 
+		long long index; 
 	} intructionsTable;
 
 	typedef struct{
-		int tab[ JUMP_NUMBER ];
-		int top;
+		long long tab[ JUMP_NUMBER ];
+		long long top;
 	} jumpStack;
 
 
 	int yylineno;
 	long long memoryIndex;
-	int fault;
-	int registers[ 5 ];
-	int instrCounter;
+	long long fault;
+	long long registers[ 5 ];
+	long long instrCounter;
 
 	identifiersTable idTab;
 	intructionsTable asmTab;
@@ -79,8 +79,8 @@
 	struct{
 		char * string;
 		long long num;
-		int type; // 1 - number ( literal ), 2 - variable
-		int _register;
+		long long type; // 1 - number ( literal ), 2 - variable
+		long long _register;
 	}  data;
 }
 
@@ -165,7 +165,7 @@ commands : commands command
 command : 
 	identifier ASG expression SEM
 	{
-		int index = getIdIndex( $1.string );
+		long long index = getIdIndex( $1.string );
 
 		if( index != - 1 ){
 			if( idTab.tab[ index ]->glob == 1 ){
@@ -189,17 +189,17 @@ command :
 	}
 	| IF condition 
 	{
-		int reg = $2._register;
+		long long reg = $2._register;
 
 		addCode("JZERO", 2, reg, -1 );
-		int backJump = instrCounter - 1;
+		long long backJump = instrCounter - 1;
 		addJump( backJump );
 		registers[ reg ] = 0;
 
 	}
 	THEN commands ELSE
 	{
-		int backJump = getJump();
+		long long backJump = getJump();
 		editArgument( backJump, 2, instrCounter+1 );
 		
 		addCode( "JUMP", 1, -1 , 0 );
@@ -208,7 +208,7 @@ command :
 	} 
 	commands ENDIF
 	{
-		int backJump = getJump( );
+		long long backJump = getJump( );
 		editArgument( backJump, 1, instrCounter );
 	}
 	| WHILE 
@@ -217,14 +217,14 @@ command :
 	}
 	condition
 	{
-		int reg = $3._register;
+		long long reg = $3._register;
 		registers[ reg ] = 0;
 		addCode( "JZERO", 2, reg, -2 );
 		addJump( instrCounter - 1 );
 	} 
 	DO commands 
 	{
-		int backJump = getJump();
+		long long backJump = getJump();
 		editArgument( backJump, 2, instrCounter+1 );
 		backJump = getJump();
 		addCode( "JUMP", 1, backJump, 0 );
@@ -232,17 +232,23 @@ command :
 	ENDWHILE
 	| FOR ID FROM value TO value
 	{
-		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
-		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
+		long long index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
+		long long index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
 
 		addId( $2.string, 1, 1, 0 );
-		int index = getIdIndex( $2.string );
+		long long index = getIdIndex( $2.string );
 		idTab.tab[ index ]->initialized = 1;
 
 		if( index1 != -1 && index2 != -1 ){
-			int reg1 = $4._register;
-			int reg2 = $6._register;
-			int reg3 = findRegister();
+
+			if( $4.type == 2 )
+				checkInit(index1);
+			if( $6.type == 2 )
+				checkInit(index2);
+				
+			long long reg1 = $4._register;
+			long long reg2 = $6._register;
+			long long reg3 = findRegister();
 
 			if( $4.type == 1 ){
 				addCode( "ZERO", 1, 0, 0 );
@@ -296,9 +302,9 @@ command :
 	}
 	DO commands
 	{	
-		int index = getIdIndex( $2.string );
-		int reg1 = $4._register;
-		int reg2 = $6._register;
+		long long index = getIdIndex( $2.string );
+		long long reg1 = $4._register;
+		long long reg2 = $6._register;
 
 		saveRegister( 0, idTab.tab[ index ]->mem );
 		addCode( "LOAD", 1, reg1, 0 );
@@ -308,7 +314,7 @@ command :
 		addCode( "LOAD", 1, reg2, 0 );
 		addCode( "DEC", 1, reg2, 0 );
 
-		int backJump = getJump();
+		long long backJump = getJump();
 		editArgument( backJump, 2, instrCounter+1 );
 		addCode( "JUMP", 1, backJump, 0 );	
 		backJump = getJump();
@@ -319,18 +325,23 @@ command :
 	}
 	| FOR ID FROM value DOWNTO value
 	{
-		int index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
-		int index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
+		long long index1 = $4.type == 2 ? getIdIndex( $4.string ) : 1;
+		long long index2 = $6.type == 2 ? getIdIndex( $6.string ) : 1;
 
 		addId( $2.string, 1, 1, 0 );
 
 		if( index1 != -1 && index2 != -1 ){
-			int index = getIdIndex( $2.string );
+			if( $4.type == 2 )
+				checkInit(index1);
+			if( $6.type == 2 )
+				checkInit(index2);
+
+			long long index = getIdIndex( $2.string );
 			idTab.tab[ index ]->initialized = 1;
 
-			int reg1 = $4._register;
-			int reg2 = $6._register;
-			int reg3 = findRegister();
+			long long reg1 = $4._register;
+			long long reg2 = $6._register;
+			long long reg3 = findRegister();
 
 			if( $6.type == 1 ){
 				addCode( "ZERO", 1, 0, 0 );
@@ -391,11 +402,18 @@ command :
 			registers[ reg3 ] = 0; 
 
 		}
+		else{
+			if( index1 == -1 )
+				INIT_ERROR( $4.string )
+			if( index2 == - 1 )
+				INIT_ERROR( $6.string )
+			fault = 0 ;
+		}
 	}
 	DO commands 
 	{
-		int index = getIdIndex( $2.string );
-		int reg1 = $4._register;
+		long long index = getIdIndex( $2.string );
+		long long reg1 = $4._register;
 
 		saveRegister( 0, idTab.tab[ index ]->mem );
 		addCode( "LOAD", 1, reg1, 0 );
@@ -405,7 +423,7 @@ command :
 		addCode( "LOAD", 1, reg1, 0 );
 		addCode( "DEC", 1, reg1, 0 );
 
-		int backJump = getJump( );
+		long long backJump = getJump( );
 		editArgument( backJump, 2, instrCounter + 1 );
 		addCode( "JUMP", 1, backJump, 0 );
 		backJump = getJump();
@@ -417,13 +435,13 @@ command :
 	}
 	| READ identifier SEM
 	{
-		int reg = findRegister();
+		long long reg = findRegister();
 		addCode("GET", 1, reg, 0 );
 
-		int index = getIdIndex( $2.string );
+		long long index = getIdIndex( $2.string );
 		if( index != -1 ){
 
-			int regId = $2._register;
+			long long regId = $2._register;
 
 			addCode("COPY", 1, regId, 0 );
 			addCode("STORE", 1, reg, 0 );
@@ -445,7 +463,7 @@ command :
 		}
 		else if( $2.type == 2){
 			
-			int index = getIdIndex( $2.string );
+			long long index = getIdIndex( $2.string );
 
 			if( index == -1 ){
 
@@ -480,8 +498,8 @@ expression :
 	{
 		if( $1.type == 2 ){
 			
-			int index = getIdIndex( $1.string );
-			int reg = $1._register;
+			long long index = getIdIndex( $1.string );
+			long long reg = $1._register;
 			
 			if( idTab.tab[ index ]->idType == 1 && idTab.tab[ index ]->initialized == 0 ){
 				fault = 1;
@@ -495,8 +513,8 @@ expression :
 	}
 	| value	PLUS value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -524,8 +542,8 @@ expression :
 	}
 	| value MINUS value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 			if( $1.type == 2 )
@@ -552,8 +570,8 @@ expression :
 	}
 	| value MULT value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 	
@@ -562,9 +580,9 @@ expression :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int regB = $3._register;
-			int regResult = $1._register;
-			int regHelp = findRegister(); 
+			long long regB = $3._register;
+			long long regResult = $1._register;
+			long long regHelp = findRegister(); 
 
 			addCode("ZERO", 1, regHelp, 0 );
 			addCode("ZERO", 1, 0, 0 );
@@ -580,7 +598,7 @@ expression :
 
 			addCode( "ZERO", 1, 0, 0 );
 			addCode( "JZERO", 2, regB, instrCounter+8 ); 
-			int backJump = instrCounter-1;
+			long long backJump = instrCounter-1;
 				addCode( "JODD", 2, regB, instrCounter+2 );
 				addCode( "JUMP", 1, instrCounter+3, 0 );
 				addCode( "STORE", 1, regResult, 0 );
@@ -597,8 +615,8 @@ expression :
 	}
 	| value DIV value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -607,9 +625,9 @@ expression :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register; 
-			int reg4 = findRegister();
+			long long reg1 = $1._register;
+			long long reg2 = $3._register; 
+			long long reg4 = findRegister();
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -620,6 +638,8 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
+			addCode( "JZERO", 2, reg2, instrCounter+2 );
+				addJump( instrCounter - 1 );
 			if( $3.type == 1 && stringToNum($3.string ) == 2){
 				long long num = stringToNum( $3.string );
 				addCode( "SHR", 1, reg1, 0 );
@@ -653,7 +673,7 @@ expression :
 
 			
 			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
-				int backJump = instrCounter - 1;
+				long long backJump = instrCounter - 1;
 				addCode( "SHL", 1, reg2, 0 );
 				addCode( "SHL", 1, reg4, 0 );
 
@@ -731,12 +751,15 @@ expression :
 			registers[ reg1 ] = 0;
 			registers[ reg4 ] = 0; 
 			}
+			long long backJump = getJump();
+			editArgument( backJump, 2, instrCounter );
+
 		}
 	}
 	| value MOD value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -745,9 +768,9 @@ expression :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register; 
-			int reg3 = findRegister();
+			long long reg1 = $1._register;
+			long long reg2 = $3._register; 
+			long long reg3 = findRegister();
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -758,7 +781,8 @@ expression :
 				addCode( "LOAD", 1, reg2, 0 );
 			}
 
-
+			addCode( "JZERO", 2, reg2, -1 );
+				addJump( instrCounter - 1 );
 			addCode( "ZERO", 1, reg3, 0 );
 			addCode( "INC", 1, reg3, 0 );
 
@@ -777,7 +801,7 @@ expression :
 			addCode( "JUMP", 1, instrCounter+2, 0 );
 
 			addCode( "JZERO", 2, reg1, instrCounter+9 ); 
-				int backJump = instrCounter - 1;
+				long long backJump = instrCounter - 1;
 
 				addCode( "SHL", 1, reg2, 0 );
 				addCode( "SHL", 1, reg3, 0 );
@@ -827,6 +851,12 @@ expression :
 				addCode( "SHR", 1, reg3, 0 );
 
 			addCode( "JUMP", 1, backJump, 0 );
+			addCode( "JUMP", 1, instrCounter + 2, 0 );
+			
+			backJump = getJump();
+			editArgument( backJump, 2, instrCounter );
+			
+			addCode( "ZERO", 1, reg1, 0 );
 
 			$$._register = reg1;
 			registers[ reg3 ] = 0;
@@ -837,8 +867,8 @@ expression :
 condition : 
 	value EQ value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -848,9 +878,9 @@ condition :
 				checkInit(index2);
 
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
-			int reg3 = findRegister();
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
+			long long reg3 = findRegister();
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -888,8 +918,8 @@ condition :
 	}
 	| value UNEQ value
 	{		
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -898,8 +928,8 @@ condition :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -934,8 +964,8 @@ condition :
 	}
 	| value LESS value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -944,8 +974,8 @@ condition :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
 
 			if( $3.type == 2 ){
 				addCode( "COPY", 1, reg2, 0 );
@@ -968,8 +998,8 @@ condition :
 	}
 	| value MORE value
 	{	
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -978,8 +1008,8 @@ condition :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, reg1, 0 );
@@ -1001,8 +1031,8 @@ condition :
 	}
 	| value LESSEQ value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -1011,8 +1041,8 @@ condition :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
 
 			if( $1.type == 2 ){
 				addCode( "COPY", 1, 0, 0 );
@@ -1039,8 +1069,8 @@ condition :
 	}
 	| value MOREEQ value
 	{
-		int index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
-		int index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
+		long long index1 = $1.type == 2 ? getIdIndex( $1.string ) : 1;
+		long long index2 = $3.type == 2 ? getIdIndex( $3.string ) : 1;
 
 		if( index1 != -1 && index2 != -1 ){
 
@@ -1049,8 +1079,8 @@ condition :
 			if( $3.type == 2 )
 				checkInit(index2);
 
-			int reg1 = $1._register;
-			int reg2 = $3._register;
+			long long reg1 = $1._register;
+			long long reg2 = $3._register;
 
 			if( $3.type == 2 ){
 				addCode( "COPY", 1, reg2, 0 );
@@ -1096,7 +1126,7 @@ identifier :
 	{
 		$1.type = 2;
 		
-		int index = getIdIndex( $1.string );
+		long long index = getIdIndex( $1.string );
 
 		if( index == -1 ){
 			DECL_ERROR( $1.string );
@@ -1104,8 +1134,8 @@ identifier :
 		}
 		else{
 			if( idTab.tab[ index ]->idType == 1 ){
-				int reg = findRegister();
-				int mem = idTab.tab[ index ]->mem;
+				long long reg = findRegister();
+				long long mem = idTab.tab[ index ]->mem;
 				saveRegister( reg, mem );
 
 				$1._register = reg;
@@ -1123,12 +1153,12 @@ identifier :
 	| ID OPN NUM CLS{
 		$1.type = 2;
 		$1.num = stringToNum( $3.string );
-		int index = getIdIndex( $1.string );
+		long long index = getIdIndex( $1.string );
 		
 		if( index != -1 ){
 			if( idTab.tab[ index ]->idType == 2 ){
 				if( $1.num < idTab.tab[ index ]->size ){
-					int reg = findRegister();
+					long long reg = findRegister();
 					
 					saveRegister( reg, $1.num );
 					addCode("ZERO", 1, 0, 1 );
@@ -1158,8 +1188,8 @@ identifier :
 	| ID OPN ID CLS{
 		// saving memory index to register
 		$1.type = 2;
-		int index = getIdIndex( $3.string );
-		int index2 = getIdIndex( $1.string );
+		long long index = getIdIndex( $3.string );
+		long long index2 = getIdIndex( $1.string );
 
 		if( index == -1 || index2 == -1 ){
 
@@ -1174,14 +1204,14 @@ identifier :
 			if( idTab.tab[ index ]->idType == 1 && idTab.tab[ index2 ]->idType == 2 ){
 				if( idTab.tab[ index ]->initialized == 1 ){
 					
-					int reg = findRegister();
-					int mem = idTab.tab[ index ]->mem;
+					long long reg = findRegister();
+					long long mem = idTab.tab[ index ]->mem;
 					
 					saveRegister( reg, mem );
 					
 					addCode("COPY", 1, reg, 0 );
 
-					int reg2 = findRegister();
+					long long reg2 = findRegister();
 					mem = idTab.tab[ index2 ]->mem ;
 
 					saveRegister( reg, mem );
@@ -1222,7 +1252,7 @@ void init(){
 
 	js.top = 0 ;
 
-	for( int i = 0 ; i < REGISTER_NUMBER ; ++i ){
+	for( long long i = 0 ; i < REGISTER_NUMBER ; ++i ){
 		registers[ i ] = 0;
 	}
 
@@ -1232,7 +1262,7 @@ void init(){
 
 
 
-void addCode( char * name,int nrOfArg, int firstArg, int secArg ){
+void addCode( char * name,long long nrOfArg, long long firstArg, long long secArg ){
 	
 	instruction * newCode = ( instruction * )malloc( sizeof( instruction ) );
 	newCode->instr = ( char * )malloc( strlen( name ) );
@@ -1255,9 +1285,9 @@ void addCode( char * name,int nrOfArg, int firstArg, int secArg ){
 
 void print( char * string ){
 	
-	int num = atoi( string );
-	int counter = 0;
-	int tab[ 30 ];
+	long long num = atoi( string );
+	long long counter = 0;
+	long long tab[ 30 ];
 
 	while( num > 0 ){
 		tab[ counter++ ] = num % 2;
@@ -1265,7 +1295,7 @@ void print( char * string ){
 	}
 
 	addCode( "ZERO", 1, 1, 0 );
-	for( int i = 0 ; i < counter ; ++i ){
+	for( long long i = 0 ; i < counter ; ++i ){
 		if( tab[ 1 ] == 1 ){
 			// TU SKOŃCZYŁEM
 		}
@@ -1284,8 +1314,8 @@ void print( char * string ){
 
 
 
-int findRegister( ){
-	for( int i = 4 ; i >= 1 ; --i ){
+long long findRegister( ){
+	for( long long i = 4 ; i >= 1 ; --i ){
 		if( registers[ i ] == 0 )
 			return i ;
 	}
@@ -1295,8 +1325,8 @@ int findRegister( ){
 
 
 
-int findOccupiedRegister( ){
-	for( int i = 4 ; i >= 1 ; --i ){
+long long findOccupiedRegister( ){
+	for( long long i = 4 ; i >= 1 ; --i ){
 		if( registers[ i ] == 1 )
 			return i ;
 	}
@@ -1307,7 +1337,7 @@ int findOccupiedRegister( ){
 
 
 
-void checkInit( int index ){
+void checkInit( long long index ){
 	if( idTab.tab[ index ]->idType == 1 ){
 		if( idTab.tab[ index ]->initialized == 0 ){
 			INIT_ERROR( idTab.tab[ index ]->name );
@@ -1320,11 +1350,11 @@ void checkInit( int index ){
 
 
 
-void saveRegister( int _register, long long num ){
+void saveRegister( long long _register, long long num ){
 	
 	registers[ _register ] = 1;
-	int counter = 0;
-	int tab[ 30 ];
+	long long counter = 0;
+	long long tab[ 30 ];
 
 	while( num > 0 ){
 		tab[ counter++ ] = num % 2;
@@ -1332,7 +1362,7 @@ void saveRegister( int _register, long long num ){
 	}
 
 	addCode( "ZERO", 1, _register, 0 );
-	for( int i = counter-1 ; i >= 0 ; --i ){
+	for( long long i = counter-1 ; i >= 0 ; --i ){
 		if( tab[ i ] == 1 ){
 			addCode( "INC", 1, _register, 0 );
 		}
@@ -1362,9 +1392,9 @@ void freeRegisters( ){}
 
 
 
-int checkVar( char * name ){
+long long checkVar( char * name ){
 	
-	int index = getIdIndex( name);
+	long long index = getIdIndex( name);
 	if( index > -1 ){
 		printf("<line: %d> ERROR: Nazwa '%s' została już użyta.\n", yylineno, name );
 		return 0;
@@ -1377,7 +1407,7 @@ int checkVar( char * name ){
 
 
 
-void addJump( int instrNumber ){
+void addJump( long long instrNumber ){
 	js.tab[ js.top ] = instrNumber;
 	js.top++;
 }
@@ -1386,11 +1416,11 @@ void addJump( int instrNumber ){
 
 
 
-int getJump(){
+long long getJump(){
 
 	js.top--;
 	
-	int result = js.tab[ js.top ];
+	long long result = js.tab[ js.top ];
 
 	return result;
 
@@ -1411,7 +1441,7 @@ void removeId(){
 
 
 
-void editArgument( int codeNumber, int argNumber, int value ){
+void editArgument( long long codeNumber, long long argNumber, long long value ){
 	asmTab.tab[ codeNumber ]->args[ argNumber - 1 ] = value;
 }
 
@@ -1419,7 +1449,7 @@ void editArgument( int codeNumber, int argNumber, int value ){
 
 
 
-void addId( char * name, int type, long long size, int glob ){
+void addId( char * name, long long type, long long size, long long glob ){
 	
 	identifier * id = ( identifier * )malloc( sizeof( identifier ) );
 	
@@ -1448,7 +1478,7 @@ void addId( char * name, int type, long long size, int glob ){
 
 
 
-void addArrayId( char * name, int type, char * num ){
+void addArrayId( char * name, long long type, char * num ){
 	
 	long long number = stringToNum( num );
 	addId( name, type, number, 1 );
@@ -1460,9 +1490,9 @@ void addArrayId( char * name, int type, char * num ){
 
 
 
-int getIdIndex( char * id ){
+long long getIdIndex( char * id ){
 	
-	for( int i = 0 ; i < idTab.index ; ++i ){
+	for( long long i = 0 ; i < idTab.index ; ++i ){
 		if( strcmp( id, idTab.tab[ i ]->name ) == 0 ){
 			return i;
 		}
@@ -1474,10 +1504,10 @@ int getIdIndex( char * id ){
 
 
 
-void printInstruction( int i, FILE * f){
+void printInstruction( long long i, FILE * f){
 	fprintf( f, "%s", asmTab.tab[ i ]->instr );
-	for( int temp = 0 ; temp < asmTab.tab[ i ]->nrOfArg; ++temp ){
-		fprintf(f, " %d", asmTab.tab[ i ]->args[ temp ] );
+	for( long long temp = 0 ; temp < asmTab.tab[ i ]->nrOfArg; ++temp ){
+		fprintf(f, " %lld", asmTab.tab[ i ]->args[ temp ] );
 	}
 	fprintf(f,"\n");
 }
@@ -1495,8 +1525,8 @@ void parse( int argc, char * argv[] ){
 		    FILE * f = fopen( argv[1], "w" );
 
 		    if( f != NULL ){
-				for( int i = 0 ; i < asmTab.index ; ++i ){
-					//fprintf(f, "%d: ", i );
+				for( long long i = 0 ; i < asmTab.index ; ++i ){
+					//fprintf(f, "%lld: ", i );
 					printInstruction( i, f );
 				}
 			}
@@ -1519,10 +1549,10 @@ void parse( int argc, char * argv[] ){
 
 void printArrayTable(){
 
-	for( int i = 0 ; i < idTab.index ; ++i ){
+	for( long long i = 0 ; i < idTab.index ; ++i ){
 		printf("\t%s\n",idTab.tab[ i ]->name);
-		printf("\t%d\n",idTab.tab[ i ]->idType);
-		printf("\t%d\n",idTab.tab[ i ]->mem);
+		printf("\t%lld\n",idTab.tab[ i ]->idType);
+		printf("\t%lld\n",idTab.tab[ i ]->mem);
 		printf("\n");
 	}
 
